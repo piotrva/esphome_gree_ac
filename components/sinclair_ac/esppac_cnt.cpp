@@ -15,6 +15,10 @@ void SinclairACCNT::setup() {
 
 void SinclairACCNT::loop() {
   SinclairAC::read_data();
+  if( millis() - this->init_time_ > 3000){
+    this->init_time_ = millis();
+    ESP_LOGI(TAG, "Sinclair AC component v%s working...", VERSION);
+  }
 
   if (millis() - this->last_read_ > READ_TIMEOUT &&
       !this->rx_buffer_.empty())  // Check if our read timed out and we received something

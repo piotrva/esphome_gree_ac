@@ -49,10 +49,6 @@ void SinclairAC::setup() {
 
 void SinclairAC::loop() {
   read_data();  // Read data from UART (if there is any)
-  if( millis() - this->init_time_ > 3000){
-    this->init_time_ = millis();
-    ESP_LOGI(TAG, "Sinclair AC component v%s working...", VERSION);
-  }
 }
 
 void SinclairAC::read_data() {
