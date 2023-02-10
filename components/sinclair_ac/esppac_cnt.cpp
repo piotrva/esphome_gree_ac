@@ -124,7 +124,7 @@ void SinclairACCNT::control(const climate::ClimateCall &call) {
     }
   }
 
-  send_command(this->data, CommandType::Normal, CTRL_HEADER);
+  //send_command(this->data, CommandType::Normal, CTRL_HEADER);
 }
 
 /*
@@ -168,20 +168,20 @@ void SinclairACCNT::set_data(bool set) {
 /*
  * Send a command, attaching header, packet length and checksum
  */
-void SinclairACCNT::send_command(std::vector<uint8_t> command, CommandType type, uint8_t header = CNT::CTRL_HEADER) {
-  uint8_t length = command.size();
-  command.insert(command.begin(), header);
-  command.insert(command.begin() + 1, length);
+// void SinclairACCNT::send_command(std::vector<uint8_t> command, CommandType type, uint8_t header = CNT::CTRL_HEADER) {
+//   uint8_t length = command.size();
+//   command.insert(command.begin(), header);
+//   command.insert(command.begin() + 1, length);
 
-  uint8_t checksum = 0;
+//   uint8_t checksum = 0;
 
-  for (uint8_t i : command)
-    checksum -= i;  // Add to checksum
+//   for (uint8_t i : command)
+//     checksum -= i;  // Add to checksum
 
-  command.push_back(checksum);
+//   command.push_back(checksum);
 
-  send_packet(command, type);  // Actually send the constructed packet
-}
+//   send_packet(command, type);  // Actually send the constructed packet
+// }
 
 /*
  * Send a raw packet, as is
@@ -203,7 +203,7 @@ void SinclairACCNT::send_packet(const std::vector<uint8_t> &packet, CommandType 
 void SinclairACCNT::handle_poll() {
   if (millis() - this->last_packet_sent_ > POLL_INTERVAL) {
     ESP_LOGV(TAG, "Polling AC");
-    send_command(CMD_POLL, CommandType::Normal, POLL_HEADER);
+    //send_command(CMD_POLL, CommandType::Normal, POLL_HEADER);
   }
 }
 
@@ -220,7 +220,7 @@ bool SinclairACCNT::verify_packet() {
   }
 
   // Check if header matches
-  if (this->rx_buffer_[0] != CTRL_HEADER && this->rx_buffer_[0] != POLL_HEADER) {
+  if (this->rx_buffer_[0] != 0 && this->rx_buffer_[0] != 0) {
     ESP_LOGW(TAG, "Dropping invalid packet (header)");
 
     this->rx_buffer_.clear();  // Reset buffer
@@ -252,7 +252,7 @@ bool SinclairACCNT::verify_packet() {
 }
 
 void SinclairACCNT::handle_packet() {
-  if (this->rx_buffer_[0] == POLL_HEADER) {
+  if (this->rx_buffer_[0] == 0) {
     this->data = std::vector<uint8_t>(this->rx_buffer_.begin() + 2, this->rx_buffer_.begin() + 12);
 
     this->set_data(true);
@@ -388,7 +388,7 @@ void SinclairACCNT::on_vertical_swing_change(const std::string &swing) {
     return;
   }
 
-  send_command(this->data, CommandType::Normal, CTRL_HEADER);
+  //send_command(this->data, CommandType::Normal, CTRL_HEADER);
 }
 
 void SinclairACCNT::on_horizontal_swing_change(const std::string &swing) {
@@ -414,7 +414,7 @@ void SinclairACCNT::on_horizontal_swing_change(const std::string &swing) {
     return;
   }
 
-  send_command(this->data, CommandType::Normal, CTRL_HEADER);
+  //send_command(this->data, CommandType::Normal, CTRL_HEADER);
 }
 
 }  // namespace CNT
