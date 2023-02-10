@@ -35,6 +35,7 @@ climate::ClimateTraits SinclairAC::traits() {
 
   traits.set_supported_swing_modes({climate::CLIMATE_SWING_OFF, climate::CLIMATE_SWING_BOTH,
                                     climate::CLIMATE_SWING_VERTICAL, climate::CLIMATE_SWING_HORIZONTAL});
+  ESP_LOGI(TAG, "Sinclair AC component v%s starting geting traits", VERSION);
 
   return traits;
 }
