@@ -30,8 +30,6 @@ CONF_VERTICAL_SWING_SELECT = "vertical_swing_select"
 
 CONF_CURRENT_TEMPERATURE_SENSOR = "current_temperature_sensor"
 
-CONF_CNT = "cnt"
-
 HORIZONTAL_SWING_OPTIONS = [
     "OFF",
     "F_S",
@@ -72,15 +70,13 @@ SCHEMA = climate.CLIMATE_SCHEMA.extend(
     }
 ).extend(uart.UART_DEVICE_SCHEMA)
 
-CONFIG_SCHEMA = cv.typed_schema(
-    {
-        CONF_CNT: SCHEMA.extend(
-            {
-                cv.GenerateID(): cv.declare_id(SinclairACCNT),
-                cv.Optional(CONF_CURRENT_TEMPERATURE_SENSOR): cv.use_id(sensor.Sensor),
-            }
-        ),
-    }
+CONFIG_SCHEMA = cv.All(
+    SCHEMA.extend(
+        {
+            cv.GenerateID(): cv.declare_id(SinclairACCNT),
+            cv.Optional(CONF_CURRENT_TEMPERATURE_SENSOR): cv.use_id(sensor.Sensor),
+        }
+    ),
 )
 
 
