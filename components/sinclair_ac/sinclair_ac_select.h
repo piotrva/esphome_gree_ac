@@ -8,8 +8,8 @@ namespace esphome {
 namespace sinclair_ac {
 
 class SinclairACSelect : public select::Select, public Component {
- protected:
-  void control(const std::string &value) override { this->publish_state(value); }
+    protected:
+        void control(const std::string &value) override { this->publish_state(value); }
 };
 
 }  // namespace sinclair_ac

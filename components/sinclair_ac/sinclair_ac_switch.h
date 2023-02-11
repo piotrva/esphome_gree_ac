@@ -8,8 +8,8 @@ namespace esphome {
 namespace sinclair_ac {
 
 class SinclairACSwitch : public switch_::Switch, public Component {
- protected:
-  void write_state(bool state) override { this->publish_state(state); }
+    protected:
+        void write_state(bool state) override { this->publish_state(state); }
 };
 
 }  // namespace sinclair_ac
