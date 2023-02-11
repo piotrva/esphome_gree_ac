@@ -31,7 +31,7 @@ typedef enum {
         STATE_RESTART
 } SerialProcessState_t;
 
-static const uint8_t DATA_MAX 200
+static const uint8_t DATA_MAX = 200;
 
 typedef struct {
         std::vector<uint8_t> data;
@@ -49,8 +49,6 @@ class SinclairAC : public Component, public uart::UARTDevice, public climate::Cl
         void setup() override;
         void loop() override;
 
-        SerialProcess_t serialProcess_;
-
     protected:
         select::Select *vertical_swing_select_ = nullptr;   // Select to store manual position of vertical swing
         select::Select *horizontal_swing_select_ = nullptr;   // Select to store manual position of horizontal swing
@@ -61,6 +59,8 @@ class SinclairAC : public Component, public uart::UARTDevice, public climate::Cl
         std::string horizontal_swing_state_;
 
         bool waiting_for_response_ = false;  // Set to true if we are waiting for a response
+
+        SerialProcess_t serialProcess_;
 
         uint32_t init_time_;   // Stores the current time
         uint32_t last_read_;   // Stores the time at which the last read was done
