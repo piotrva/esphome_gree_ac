@@ -290,6 +290,7 @@ climate::ClimateMode SinclairACCNT::determine_mode()
 {
     uint8_t mode = (this->serialProcess_.data[protocol::REPORT_MODE_BYTE] & protocol::REPORT_MODE_MASK) >> protocol::REPORT_MODE_POS;
     ESP_LOGV(TAG, "Sinclair AC mode = 0x%02X", mode);
+    log_packet(this->serialProcess_.data);
     /* check unit power flag - if unit is off - no need to process mode */
     if (!(this->serialProcess_.data[protocol::REPORT_PWR_BYTE] & protocol::REPORT_PWR_MASK))
     {
