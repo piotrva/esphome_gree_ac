@@ -118,8 +118,8 @@ class SinclairACCNT : public SinclairAC {
     climate::ClimateMode determine_mode();
     std::string determine_fan_mode();
 
-    std::string determine_vertical_swing(uint8_t swing);
-    std::string determine_horizontal_swing(uint8_t swing);
+    std::string determine_vertical_swing();
+    std::string determine_horizontal_swing();
 };
 
 }  // namespace CNT
