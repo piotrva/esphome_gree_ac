@@ -114,18 +114,16 @@ void SinclairAC::read_data() {
     }
 }
 
-void SinclairAC::update_current_temperature(int8_t temperature) {
+void SinclairAC::update_current_temperature(float temperature) {
     if (temperature > TEMPERATURE_THRESHOLD) {
-        ESP_LOGW(TAG, "Received out of range inside temperature: %d", temperature);
+        ESP_LOGW(TAG, "Received out of range inside temperature: %f", temperature);
         return;
     }
 
     this->current_temperature = temperature;
 }
 
-void SinclairAC::update_target_temperature(uint8_t raw_value) {
-    float temperature = raw_value * TEMPERATURE_STEP;
-
+void SinclairAC::update_target_temperature(float temperature) {
     if (temperature > TEMPERATURE_THRESHOLD) {
         ESP_LOGW(TAG, "Received out of range target temperature %.2f", temperature);
         return;

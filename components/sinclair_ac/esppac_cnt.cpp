@@ -260,7 +260,17 @@ void SinclairACCNT::processUnitReport()
     // std::string verticalSwing = determine_vertical_swing(this->data[4]);
     // std::string horizontalSwing = determine_horizontal_swing(this->data[4]);
     
-    //this->update_target_temperature((int8_t) this->data[1]);
+    this->update_target_temperature(
+        (float)(((this->serialProcess_.data[protocol::REPORT_TEMP_SET_BYTE] & protocol::REPORT_TEMP_SET_MASK) >> protocol::REPORT_TEMP_SET_POS)
+        + protocol::REPORT_TEMP_SET_OFF));
+    
+    /* if there is no external sensor mapped to represent current temperature we will get data from AC unit */
+    if (this->current_temperature_sensor_ == nullptr)
+    {
+        this->update_current_temperature(
+            (float)(((this->serialProcess_.data[protocol::REPORT_TEMP_ACT_BYTE] & protocol::REPORT_TEMP_ACT_MASK) >> protocol::REPORT_TEMP_ACT_POS)
+            - protocol::REPORT_TEMP_ACT_OFF) / protocol::REPORT_TEMP_ACT_DIV);
+    }
 
   // Also set current and outside temperature
   // 128 means not supported

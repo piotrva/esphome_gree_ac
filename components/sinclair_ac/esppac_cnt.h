@@ -48,6 +48,17 @@ namespace protocol {
     static const uint8_t REPORT_FAN_QUIET_MASK = 0b00001000;
     static const uint8_t REPORT_FAN_TURBO_BYTE = 6;
     static const uint8_t REPORT_FAN_TURBO_MASK = 0b00000001;
+
+    static const uint8_t REPORT_TEMP_SET_BYTE  = 5;
+    static const uint8_t REPORT_TEMP_SET_MASK  = 0b11110000;
+    static const uint8_t REPORT_TEMP_SET_POS   = 4;
+    static const uint8_t REPORT_TEMP_SET_OFF   = 16; /* temperature offset from value in packet */
+
+    static const uint8_t REPORT_TEMP_ACT_BYTE  = 42;
+    static const uint8_t REPORT_TEMP_ACT_MASK  = 0b11111111;
+    static const uint8_t REPORT_TEMP_ACT_POS   = 0;
+    static const uint8_t REPORT_TEMP_ACT_OFF   = 16;  /* temperature offset from value in packet */
+    static const float   REPORT_TEMP_ACT_DIV   = 2.0; /* temperature divider from value in packet */
 }
 
 /* Define packets from AC that would be processed by software */

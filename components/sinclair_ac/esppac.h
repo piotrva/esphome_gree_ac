@@ -82,8 +82,8 @@ class SinclairAC : public Component, public uart::UARTDevice, public climate::Cl
 
         void read_data();
 
-        void update_current_temperature(int8_t temperature);
-        void update_target_temperature(uint8_t raw_value);
+        void update_current_temperature(float temperature);
+        void update_target_temperature(float temperature);
         void update_swing_horizontal(const std::string &swing);
         void update_swing_vertical(const std::string &swing);
 
