@@ -14,9 +14,18 @@ enum class ACState {
     Ready,   // All done, ready to receive regular packets
 };
 
-/* Define packets from AC that would be processed by software
-   0x31 - Unit Report */
-const std::vector<uint8_t> allowedPackets = {0x31};
+namespace protocol {
+    static const uint8_t CMD_IN_UNIT_REPORT  = 0x31;
+    static const uint8_t CMD_OUT_PARAMS_SET  = 0x01;
+    static const uint8_t CMD_OUT_SYNC_TIME   = 0x03;
+    static const uint8_t CMD_OUT_MAC_REPORT  = 0x04; /* 7e 7e 0d 04 04 00 00 00 AA BB CC DD EE FF 00 -> AA BB CC DD EE FF = MAC address */
+    static const uint8_t CMD_OUT_UNKNOWN_1   = 0x02; /* 7e 7e 10 02 00 00 00 00 00 00 01 00 28 1e 19 23 23 00 b8 */
+    static const uint8_t CMD_IN_UNKNOWN_1    = 0x44; /* 7e 7e 1a 44 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 */
+    static const uint8_t CMD_IN_UNKNOWN_2    = 0x33; /* 7e 7e 2f 33 00 00 40 00 09 20 19 0a 00 10 00 14 17 5b 08 08 00 00 00 00 00 00 00 00 01 00 00 0d 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 */
+}
+
+/* Define packets from AC that would be processed by software */
+const std::vector<uint8_t> allowedPackets = {protocol::CMD_IN_UNIT_REPORT};
 
 class SinclairACCNT : public SinclairAC {
     public:

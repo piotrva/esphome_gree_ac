@@ -268,6 +268,10 @@ bool SinclairACCNT::verify_packet() {
 }
 
 void SinclairACCNT::handle_packet() {
+    if (this->serialProcess_.data[3] == protocol::CMD_IN_UNIT_REPORT)
+    {
+        
+    }
     // if (this->rx_buffer_[0] == 0) {
     //     this->data = std::vector<uint8_t>(this->rx_buffer_.begin() + 2, this->rx_buffer_.begin() + 12);
 
