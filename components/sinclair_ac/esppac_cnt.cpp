@@ -21,7 +21,7 @@ void SinclairACCNT::loop() {
     if (this->serialProcess_.state == STATE_COMPLETE)
     {
         /* do not forget to order for restart of the recieve state machine */
-        this->serialProcess_.state == STATE_RESTART;
+        this->serialProcess_.state = STATE_RESTART;
         log_packet(this->serialProcess_.data);
 
         if (!verify_packet())  // Verify length, header, counter and checksum
@@ -202,10 +202,10 @@ void SinclairACCNT::send_packet(const std::vector<uint8_t> &packet, CommandType 
  */
 
 void SinclairACCNT::handle_poll() {
-    if (millis() - this->last_packet_sent_ > POLL_INTERVAL) {
-        ESP_LOGV(TAG, "Polling AC");
-        //send_command(CMD_POLL, CommandType::Normal, POLL_HEADER);
-    }
+    // if (millis() - this->last_packet_sent_ > POLL_INTERVAL) {
+    //     ESP_LOGV(TAG, "Polling AC");
+    //     //send_command(CMD_POLL, CommandType::Normal, POLL_HEADER);
+    // }
 }
 
 /*
