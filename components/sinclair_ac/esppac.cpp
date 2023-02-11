@@ -54,12 +54,56 @@ void SinclairAC::read_data() {
     {
         uint8_t c;
         this->read_byte(&c);  // Store in receive buffer
-        
-        this->serialProcess_.buffer[this->serialProcess_.buffer_cnt++] = c;
-        if (this->serialProcess_.buffer_cnt >= BUFFER_MAX)
+
+        if (this->serialProcess_.state == STATE_RESTART)
         {
-            this->serialProcess_.buffer_cnt = 0;
+            this->serialProcess_.data.clear();
+            this->serialProcess_.state = STATE_WAIT_SYNC;
+        }
+        
+        this->serialProcess_.data.push_back(c);
+        if (this->serialProcess_.data.size() >= DATA_MAX)
+        {
+            this->serialProcess_.data.clear();
             continue;
+        }
+        switch (this->serialProcess_.state)
+        {
+            case STATE_WAIT_SYNC:
+                /* Frame begins with 0x7E 0x7E LEN CMD
+                   LEN - frame length in bytes
+                   CMD - command
+                 */
+                if (c != 0x7E && 
+                    this->serialProcess_.data.size() > 2 && 
+                    this->serialProcess_.buffer[this->serialProcess_.data.size()-2] == 0x7E && 
+                    this->serialProcess_.buffer[this->serialProcess_.data.size()-3] == 0x7E)
+                {
+                    this->serialProcess_.data.clear();
+
+                    this->serialProcess_.data.push_back(0x7E);
+                    this->serialProcess_.data.push_back(0x7E);
+                    this->serialProcess_.data.push_back(c);
+
+                    this->serialProcess_.frame_size = c;
+                    this->serialProcess_.state = STATE_RECIEVE;
+                }
+                break;
+            case STATE_RECIEVE:
+                this->serialProcess_.frame_size--;
+                if (this->serialProcess_.frame_size == 0)
+                {
+                    /* WE HAVE A FRAME FROM AC */
+                    this->serialProcess_.state = STATE_COMPLETE;
+                }
+                break;
+            case STATE_RESTART:
+            case STATE_COMPLETE:
+                break;
+            default:
+                this->serialProcess_.state = STATE_WAIT_SYNC;
+                this->serialProcess_.data.clear();
+                break;
         }
 
     }

@@ -14,12 +14,15 @@ void SinclairACCNT::setup() {
 }
 
 void SinclairACCNT::loop() {
+    /* this reads data from UART */
     SinclairAC::loop();
 
-    if (millis() - this->last_read_ > READ_TIMEOUT &&
-            !this->rx_buffer_.empty())  // Check if our read timed out and we received something
+    /* we have a frame from AC */
+    if (this->serialProcess_.state == STATE_COMPLETE)
     {
-        log_packet(this->rx_buffer_);
+        /* do not forget to order for restart of the recieve state machine */
+        this->serialProcess_.state == STATE_RESTART;
+        log_packet(this->serialProcess_.data);
 
         if (!verify_packet())  // Verify length, header, counter and checksum
             return;
@@ -28,8 +31,6 @@ void SinclairACCNT::loop() {
         this->last_packet_received_ = millis();  // Set the time at which we received our last packet
 
         handle_packet();
-
-        this->rx_buffer_.clear();  // Reset buffer
     }
 
     handle_poll();  // Handle sending poll packets
@@ -142,14 +143,14 @@ void SinclairACCNT::set_data(bool set) {
     if (set) {
   // Also set current and outside temperature
   // 128 means not supported
-        if (this->current_temperature_sensor_ == nullptr) {
-            if(this->rx_buffer_[18] != 0x80)
-                this->update_current_temperature((int8_t)this->rx_buffer_[18]);
-            else if(this->rx_buffer_[21] != 0x80)
-                this->update_current_temperature((int8_t)this->rx_buffer_[21]);
-            else
-                ESP_LOGV(TAG, "Current temperature is not supported");
-        }
+        // if (this->current_temperature_sensor_ == nullptr) {
+        //     if(this->rx_buffer_[18] != 0x80)
+        //         this->update_current_temperature((int8_t)this->rx_buffer_[18]);
+        //     else if(this->rx_buffer_[21] != 0x80)
+        //         this->update_current_temperature((int8_t)this->rx_buffer_[21]);
+        //     else
+        //         ESP_LOGV(TAG, "Current temperature is not supported");
+        // }
     }
 
     if (verticalSwing == "auto" && horizontalSwing == "auto")
@@ -212,57 +213,57 @@ void SinclairACCNT::handle_poll() {
  */
 
 bool SinclairACCNT::verify_packet() {
-    if (this->rx_buffer_.size() < 12) {
-        ESP_LOGW(TAG, "Dropping invalid packet (length)");
+//     if (this->rx_buffer_.size() < 12) {
+//         ESP_LOGW(TAG, "Dropping invalid packet (length)");
 
-        this->rx_buffer_.clear();  // Reset buffer
-        return false;
-    }
+//         this->rx_buffer_.clear();  // Reset buffer
+//         return false;
+//     }
 
-  // Check if header matches
-    if (this->rx_buffer_[0] != 0 && this->rx_buffer_[0] != 0) {
-        ESP_LOGW(TAG, "Dropping invalid packet (header)");
+//   // Check if header matches
+//     if (this->rx_buffer_[0] != 0 && this->rx_buffer_[0] != 0) {
+//         ESP_LOGW(TAG, "Dropping invalid packet (header)");
 
-        this->rx_buffer_.clear();  // Reset buffer
-        return false;
-    }
+//         this->rx_buffer_.clear();  // Reset buffer
+//         return false;
+//     }
 
-  // Packet length minus header, packet length and checksum
-    if (this->rx_buffer_[1] != this->rx_buffer_.size() - 3) {
-        ESP_LOGD(TAG, "Dropping invalid packet (length mismatch)");
+//   // Packet length minus header, packet length and checksum
+//     if (this->rx_buffer_[1] != this->rx_buffer_.size() - 3) {
+//         ESP_LOGD(TAG, "Dropping invalid packet (length mismatch)");
 
-        this->rx_buffer_.clear();  // Reset buffer
-        return false;
-    }
+//         this->rx_buffer_.clear();  // Reset buffer
+//         return false;
+//     }
 
-    uint8_t checksum = 0;
+//     uint8_t checksum = 0;
 
-    for (uint8_t b : this->rx_buffer_) {
-        checksum += b;
-    }
+//     for (uint8_t b : this->rx_buffer_) {
+//         checksum += b;
+//     }
 
-    if (checksum != 0) {
-        ESP_LOGD(TAG, "Dropping invalid packet (checksum)");
+//     if (checksum != 0) {
+//         ESP_LOGD(TAG, "Dropping invalid packet (checksum)");
 
-        this->rx_buffer_.clear();  // Reset buffer
-        return false;
-    }
+//         this->rx_buffer_.clear();  // Reset buffer
+//         return false;
+//     }
 
     return true;
 }
 
 void SinclairACCNT::handle_packet() {
-    if (this->rx_buffer_[0] == 0) {
-        this->data = std::vector<uint8_t>(this->rx_buffer_.begin() + 2, this->rx_buffer_.begin() + 12);
+    // if (this->rx_buffer_[0] == 0) {
+    //     this->data = std::vector<uint8_t>(this->rx_buffer_.begin() + 2, this->rx_buffer_.begin() + 12);
 
-        this->set_data(true);
-        this->publish_state();
+    //     this->set_data(true);
+    //     this->publish_state();
 
-        if (this->state_ != ACState::Ready)
-            this->state_ = ACState::Ready;  // Mark as ready after first poll
-    } else {
-        ESP_LOGD(TAG, "Received unknown packet");
-    }
+    //     if (this->state_ != ACState::Ready)
+    //         this->state_ = ACState::Ready;  // Mark as ready after first poll
+    // } else {
+    //     ESP_LOGD(TAG, "Received unknown packet");
+    // }
 }
 
 climate::ClimateMode SinclairACCNT::determine_mode(uint8_t mode) {
