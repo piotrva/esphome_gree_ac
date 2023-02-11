@@ -28,9 +28,20 @@ void SinclairACCNT::loop() {
             return;
 
         this->waiting_for_response_ = false;
-        this->last_packet_received_ = millis();  // Set the time at which we received our last packet
+        this->last_packet_received_ = millis();  /* Set the time at which we received our last packet */
+
+        /* A valid recieved packet of accepted type marks module as being ready */
+        if (this->state_ != ACState::Ready)
+            this->state_ = ACState::Ready;  
 
         handle_packet();
+    }
+
+    /* if there are no packets for 5 seconds - mark module as not ready */
+    if (millis() - this->last_packet_received_ > 5000UL)
+    {
+        if (this->state_ != ACState::Initializing)
+            this->state_ = ACState::Initializing; 
     }
 
     handle_poll();  // Handle sending poll packets
