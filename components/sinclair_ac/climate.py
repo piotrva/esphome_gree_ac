@@ -25,8 +25,10 @@ SinclairACSelect = sinclair_ac_ns.class_(
 )
 
 
-CONF_HORIZONTAL_SWING_SELECT = "horizontal_swing_select"
-CONF_VERTICAL_SWING_SELECT = "vertical_swing_select"
+CONF_HORIZONTAL_SWING_SELECT    = "horizontal_swing_select"
+CONF_VERTICAL_SWING_SELECT      = "vertical_swing_select"
+CONF_DISPLAY_SELECT             = "display_select"
+CONF_DISPLAY_UNIT_SELECT        = "display_unit_select"
 
 CONF_CURRENT_TEMPERATURE_SENSOR = "current_temperature_sensor"
 
@@ -56,6 +58,19 @@ VERTICAL_SWING_OPTIONS = [
     "11 - Constant - Up",
 ]
 
+DISPLAY_OPTIONS = [
+    "0 - OFF",
+    "1 - AUTO",
+    "2 - Set temperature",
+    "3 - Actual temperature",
+    "4 - Outside temperature",
+]
+
+DISPLAY_UNIT_OPTIONS = [
+    "1 - C",
+    "2 - F",
+]
+
 SWITCH_SCHEMA = switch.SWITCH_SCHEMA.extend(cv.COMPONENT_SCHEMA).extend(
     {cv.GenerateID(): cv.declare_id(SinclairACSwitch)}
 )
@@ -67,6 +82,8 @@ SCHEMA = climate.CLIMATE_SCHEMA.extend(
     {
         cv.Optional(CONF_HORIZONTAL_SWING_SELECT): SELECT_SCHEMA,
         cv.Optional(CONF_VERTICAL_SWING_SELECT): SELECT_SCHEMA,
+        cv.Optional(CONF_DISPLAY_SELECT): SELECT_SCHEMA,
+        cv.Optional(CONF_DISPLAY_UNIT_SELECT): SELECT_SCHEMA,
     }
 ).extend(uart.UART_DEVICE_SCHEMA)
 
@@ -88,15 +105,27 @@ async def to_code(config):
 
     if CONF_HORIZONTAL_SWING_SELECT in config:
         conf = config[CONF_HORIZONTAL_SWING_SELECT]
-        swing_select = await select.new_select(conf, options=HORIZONTAL_SWING_OPTIONS)
-        await cg.register_component(swing_select, conf)
-        cg.add(var.set_horizontal_swing_select(swing_select))
+        hswing_select = await select.new_select(conf, options=HORIZONTAL_SWING_OPTIONS)
+        await cg.register_component(hswing_select, conf)
+        cg.add(var.set_horizontal_swing_select(hswing_select))
 
     if CONF_VERTICAL_SWING_SELECT in config:
         conf = config[CONF_VERTICAL_SWING_SELECT]
-        swing_select = await select.new_select(conf, options=VERTICAL_SWING_OPTIONS)
-        await cg.register_component(swing_select, conf)
-        cg.add(var.set_vertical_swing_select(swing_select))
+        vswing_select = await select.new_select(conf, options=VERTICAL_SWING_OPTIONS)
+        await cg.register_component(vswing_select, conf)
+        cg.add(var.set_vertical_swing_select(vswing_select))
+    
+    if CONF_DISPLAY_SELECT in config:
+        conf = config[CONF_DISPLAY_SELECT]
+        display_select = await select.new_select(conf, options=DISPLAY_OPTIONS)
+        await cg.register_component(display_select, conf)
+        cg.add(var.set_display_select(display_select))
+    
+    if CONF_DISPLAY_UNIT_SELECT in config:
+        conf = config[CONF_DISPLAY_UNIT_SELECT]
+        display_unit_select = await select.new_select(conf, options=DISPLAY_UNIT_OPTIONS)
+        await cg.register_component(display_unit_select, conf)
+        cg.add(var.set_display_unit_select(display_unit_select))
 
     if CONF_CURRENT_TEMPERATURE_SENSOR in config:
         sens = await cg.get_variable(config[CONF_CURRENT_TEMPERATURE_SENSOR])

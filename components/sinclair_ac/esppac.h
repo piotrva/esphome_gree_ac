@@ -83,6 +83,10 @@ class SinclairAC : public Component, public uart::UARTDevice, public climate::Cl
     public:
         void set_vertical_swing_select(select::Select *vertical_swing_select);
         void set_horizontal_swing_select(select::Select *horizontal_swing_select);
+
+        void set_display_select(select::Select *display_select);
+        void set_display_unit_select(select::Select *display_unit_select);
+
         void set_current_temperature_sensor(sensor::Sensor *current_temperature_sensor);
 
         void setup() override;

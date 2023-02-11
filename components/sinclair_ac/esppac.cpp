@@ -8,7 +8,8 @@ namespace sinclair_ac {
 
 static const char *const TAG = "sinclair_ac";
 
-climate::ClimateTraits SinclairAC::traits() {
+climate::ClimateTraits SinclairAC::traits()
+{
     auto traits = climate::ClimateTraits();
 
     traits.set_supports_action(false);
@@ -37,7 +38,8 @@ climate::ClimateTraits SinclairAC::traits() {
     return traits;
 }
 
-void SinclairAC::setup() {
+void SinclairAC::setup()
+{
   // Initialize times
     this->init_time_ = millis();
     this->last_packet_sent_ = millis();
@@ -45,11 +47,13 @@ void SinclairAC::setup() {
     ESP_LOGI(TAG, "Sinclair AC component v%s starting...", VERSION);
 }
 
-void SinclairAC::loop() {
+void SinclairAC::loop()
+{
     read_data();  // Read data from UART (if there is any)
 }
 
-void SinclairAC::read_data() {
+void SinclairAC::read_data()
+{
     while (available())  // Read while data is available
     {
         /* If we had a packet or a packet had not been decoded yet - do not recieve more data */
@@ -114,7 +118,8 @@ void SinclairAC::read_data() {
     }
 }
 
-void SinclairAC::update_current_temperature(float temperature) {
+void SinclairAC::update_current_temperature(float temperature)
+{
     if (temperature > TEMPERATURE_THRESHOLD) {
         ESP_LOGW(TAG, "Received out of range inside temperature: %f", temperature);
         return;
@@ -123,7 +128,8 @@ void SinclairAC::update_current_temperature(float temperature) {
     this->current_temperature = temperature;
 }
 
-void SinclairAC::update_target_temperature(float temperature) {
+void SinclairAC::update_target_temperature(float temperature)
+{
     if (temperature > TEMPERATURE_THRESHOLD) {
         ESP_LOGW(TAG, "Received out of range target temperature %.2f", temperature);
         return;
@@ -132,24 +138,30 @@ void SinclairAC::update_target_temperature(float temperature) {
     this->target_temperature = temperature;
 }
 
-void SinclairAC::update_swing_horizontal(const std::string &swing) {
+void SinclairAC::update_swing_horizontal(const std::string &swing)
+{
     this->horizontal_swing_state_ = swing;
 
     if (this->horizontal_swing_select_ != nullptr &&
-        this->horizontal_swing_select_->state != this->horizontal_swing_state_) \
+        this->horizontal_swing_select_->state != this->horizontal_swing_state_)
     {
         this->horizontal_swing_select_->publish_state(this->horizontal_swing_state_);  // Set current horizontal swing position
     }
 }
 
-void SinclairAC::update_swing_vertical(const std::string &swing) {
+void SinclairAC::update_swing_vertical(const std::string &swing)
+{
     this->vertical_swing_state_ = swing;
 
-    if (this->vertical_swing_select_ != nullptr && this->vertical_swing_select_->state != this->vertical_swing_state_)
+    if (this->vertical_swing_select_ != nullptr && 
+        this->vertical_swing_select_->state != this->vertical_swing_state_)
+    {
         this->vertical_swing_select_->publish_state(this->vertical_swing_state_);  // Set current vertical swing position
+    }
 }
 
-climate::ClimateAction SinclairAC::determine_action() {
+climate::ClimateAction SinclairAC::determine_action()
+{
     if (this->mode == climate::CLIMATE_MODE_OFF) {
         return climate::CLIMATE_ACTION_OFF;
     } else if (this->mode == climate::CLIMATE_MODE_FAN_ONLY) {
@@ -181,7 +193,8 @@ void SinclairAC::set_current_temperature_sensor(sensor::Sensor *current_temperat
         });
 }
 
-void SinclairAC::set_vertical_swing_select(select::Select *vertical_swing_select) {
+void SinclairAC::set_vertical_swing_select(select::Select *vertical_swing_select)
+{
     this->vertical_swing_select_ = vertical_swing_select;
     this->vertical_swing_select_->add_on_state_callback([this](const std::string &value, size_t index) {
         if (value == this->vertical_swing_state_)
@@ -190,7 +203,8 @@ void SinclairAC::set_vertical_swing_select(select::Select *vertical_swing_select
     });
 }
 
-void SinclairAC::set_horizontal_swing_select(select::Select *horizontal_swing_select) {
+void SinclairAC::set_horizontal_swing_select(select::Select *horizontal_swing_select)
+{
     this->horizontal_swing_select_ = horizontal_swing_select;
     this->horizontal_swing_select_->add_on_state_callback([this](const std::string &value, size_t index) {
         if (value == this->horizontal_swing_state_)
@@ -199,11 +213,22 @@ void SinclairAC::set_horizontal_swing_select(select::Select *horizontal_swing_se
     });
 }
 
+void SinclairAC::set_display_select(select::Select *display_select)
+{
+
+}
+
+void SinclairAC::set_display_unit_select(select::Select *display_unit_select)
+{
+
+}
+
 /*
  * Debugging
  */
 
-void SinclairAC::log_packet(std::vector<uint8_t> data, bool outgoing) {
+void SinclairAC::log_packet(std::vector<uint8_t> data, bool outgoing)
+{
     if (outgoing) {
         ESP_LOGV(TAG, "TX: %s", format_hex_pretty(data).c_str());
     } else {

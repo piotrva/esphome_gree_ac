@@ -53,11 +53,13 @@ void SinclairACCNT::loop()
  * ESPHome control request
  */
 
-void SinclairACCNT::control(const climate::ClimateCall &call) {
+void SinclairACCNT::control(const climate::ClimateCall &call)
+{
     if (this->state_ != ACState::Ready)
         return;
 
-    if (call.get_mode().has_value()) {
+    if (call.get_mode().has_value())
+    {
         ESP_LOGV(TAG, "Requested mode change");
 
         // switch (*call.get_mode()) {
@@ -85,11 +87,13 @@ void SinclairACCNT::control(const climate::ClimateCall &call) {
         // }
     }
 
-    if (call.get_target_temperature().has_value()) {
+    if (call.get_target_temperature().has_value())
+    {
         //this->data[1] = *call.get_target_temperature() / TEMPERATURE_STEP;
     }
 
-    if (call.get_custom_fan_mode().has_value()) {
+    if (call.get_custom_fan_mode().has_value())
+    {
         ESP_LOGV(TAG, "Requested fan mode change");
 
         if(this->custom_preset != "Normal")
@@ -116,7 +120,8 @@ void SinclairACCNT::control(const climate::ClimateCall &call) {
         //     ESP_LOGV(TAG, "Unsupported fan mode requested");
     }
 
-    if (call.get_swing_mode().has_value()) {
+    if (call.get_swing_mode().has_value())
+    {
         ESP_LOGV(TAG, "Requested swing mode change");
 
         // switch (*call.get_swing_mode()) {
@@ -162,7 +167,8 @@ void SinclairACCNT::control(const climate::ClimateCall &call) {
 /*
  * Send a raw packet, as is
  */
-void SinclairACCNT::send_packet(const std::vector<uint8_t> &packet, CommandType type) {
+void SinclairACCNT::send_packet(const std::vector<uint8_t> &packet, CommandType type)
+{
     this->last_packet_sent_ = millis();  // Save the time when we sent the last packet
 
     if (type != CommandType::Response)   // Don't wait for a response for responses
@@ -176,7 +182,8 @@ void SinclairACCNT::send_packet(const std::vector<uint8_t> &packet, CommandType 
  * Loop handling
  */
 
-void SinclairACCNT::handle_poll() {
+void SinclairACCNT::handle_poll()
+{
     // if (millis() - this->last_packet_sent_ > POLL_INTERVAL) {
     //     ESP_LOGV(TAG, "Polling AC");
     //     //send_command(CMD_POLL, CommandType::Normal, POLL_HEADER);
@@ -314,7 +321,8 @@ climate::ClimateMode SinclairACCNT::determine_mode()
     }
 }
 
-std::string SinclairACCNT::determine_fan_mode() {
+std::string SinclairACCNT::determine_fan_mode()
+{
     /* fan setting has quite complex representation in the packet, brace for it */
     uint8_t fanSpeed1 = (this->serialProcess_.data[protocol::REPORT_FAN_SPD1_BYTE]  & protocol::REPORT_FAN_SPD1_MASK) >> protocol::REPORT_FAN_SPD1_POS;
     uint8_t fanSpeed2 = (this->serialProcess_.data[protocol::REPORT_FAN_SPD2_BYTE]  & protocol::REPORT_FAN_SPD2_MASK) >> protocol::REPORT_FAN_SPD2_POS;
@@ -360,7 +368,8 @@ std::string SinclairACCNT::determine_fan_mode() {
     }
 }
 
-std::string SinclairACCNT::determine_vertical_swing() {
+std::string SinclairACCNT::determine_vertical_swing()
+{
     uint8_t mode = (this->serialProcess_.data[protocol::REPORT_VSWING_BYTE]  & protocol::REPORT_VSWING_MASK) >> protocol::REPORT_VSWING_POS;
 
     switch (mode) {
@@ -394,7 +403,8 @@ std::string SinclairACCNT::determine_vertical_swing() {
     }
 }
 
-std::string SinclairACCNT::determine_horizontal_swing() {
+std::string SinclairACCNT::determine_horizontal_swing()
+{
     uint8_t mode = (this->serialProcess_.data[protocol::REPORT_HSWING_BYTE]  & protocol::REPORT_HSWING_MASK) >> protocol::REPORT_HSWING_POS;
 
     switch (mode) {
@@ -422,7 +432,8 @@ std::string SinclairACCNT::determine_horizontal_swing() {
  * Sensor handling
  */
 
-void SinclairACCNT::on_vertical_swing_change(const std::string &swing) {
+void SinclairACCNT::on_vertical_swing_change(const std::string &swing)
+{
     if (this->state_ != ACState::Ready)
         return;
 
@@ -450,7 +461,8 @@ void SinclairACCNT::on_vertical_swing_change(const std::string &swing) {
     //send_command(this->data, CommandType::Normal, CTRL_HEADER);
 }
 
-void SinclairACCNT::on_horizontal_swing_change(const std::string &swing) {
+void SinclairACCNT::on_horizontal_swing_change(const std::string &swing)
+{
     if (this->state_ != ACState::Ready)
         return;
 
