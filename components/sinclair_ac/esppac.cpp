@@ -76,8 +76,8 @@ void SinclairAC::read_data() {
                  */
                 if (c != 0x7E && 
                     this->serialProcess_.data.size() > 2 && 
-                    this->serialProcess_.buffer[this->serialProcess_.data.size()-2] == 0x7E && 
-                    this->serialProcess_.buffer[this->serialProcess_.data.size()-3] == 0x7E)
+                    this->serialProcess_.data[this->serialProcess_.data.size()-2] == 0x7E && 
+                    this->serialProcess_.data[this->serialProcess_.data.size()-3] == 0x7E)
                 {
                     this->serialProcess_.data.clear();
 
