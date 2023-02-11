@@ -86,6 +86,19 @@ namespace protocol {
     static const uint8_t REPORT_VSWING_MID         = 9;
     static const uint8_t REPORT_VSWING_MIDU        = 10;
     static const uint8_t REPORT_VSWING_UP          = 11;
+
+    static const uint8_t REPORT_DISP_ON_BYTE   = 6;
+    static const uint8_t REPORT_DISP_ON_MASK   = 0b00000010;
+    static const uint8_t REPORT_DISP_MODE_BYTE = 9;
+    static const uint8_t REPORT_DISP_MODE_MASK = 0b00110000;
+    static const uint8_t REPORT_DISP_MODE_POS  = 4;
+    static const uint8_t REPORT_DISP_MODE_AUTO     = 0;
+    static const uint8_t REPORT_DISP_MODE_SET      = 1;
+    static const uint8_t REPORT_DISP_MODE_ACT      = 2;
+    static const uint8_t REPORT_DISP_MODE_OUT      = 3;
+
+    static const uint8_t REPORT_DISP_F_BYTE    = 7;
+    static const uint8_t REPORT_DISP_F_MASK    = 0b10000000;
 }
 
 /* Define packets from AC that would be processed by software */
@@ -97,6 +110,9 @@ class SinclairACCNT : public SinclairAC {
 
     void on_horizontal_swing_change(const std::string &swing) override;
     void on_vertical_swing_change(const std::string &swing) override;
+
+    void display_change(const std::string &display) override;
+    void display_unit_change(const std::string &display_unit) override;
 
     void setup() override;
     void loop() override;
@@ -120,6 +136,9 @@ class SinclairACCNT : public SinclairAC {
 
     std::string determine_vertical_swing();
     std::string determine_horizontal_swing();
+
+    std::string determine_display();
+    std::string determine_display_unit();
 };
 
 }  // namespace CNT

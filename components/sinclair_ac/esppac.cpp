@@ -145,7 +145,7 @@ void SinclairAC::update_swing_horizontal(const std::string &swing)
     if (this->horizontal_swing_select_ != nullptr &&
         this->horizontal_swing_select_->state != this->horizontal_swing_state_)
     {
-        this->horizontal_swing_select_->publish_state(this->horizontal_swing_state_);  // Set current horizontal swing position
+        this->horizontal_swing_select_->publish_state(this->horizontal_swing_state_);
     }
 }
 
@@ -156,7 +156,29 @@ void SinclairAC::update_swing_vertical(const std::string &swing)
     if (this->vertical_swing_select_ != nullptr && 
         this->vertical_swing_select_->state != this->vertical_swing_state_)
     {
-        this->vertical_swing_select_->publish_state(this->vertical_swing_state_);  // Set current vertical swing position
+        this->vertical_swing_select_->publish_state(this->vertical_swing_state_);
+    }
+}
+
+void SinclairAC::update_display(const std::string &display)
+{
+    this->display_state_ = display;
+
+    if (this->display_select_ != nullptr && 
+        this->display_select_->state != this->display_state_)
+    {
+        this->display_select_->publish_state(this->display_state_);
+    }
+}
+
+void SinclairAC::update_display_unit(const std::string &display_unit)
+{
+    this->display_unit_state_ = display_unit;
+
+    if (this->display_unit_select_ != nullptr && 
+        this->display_unit_select_->state != this->display_unit_state_)
+    {
+        this->display_unit_select_->publish_state(this->display_unit_state_);
     }
 }
 
@@ -215,12 +237,22 @@ void SinclairAC::set_horizontal_swing_select(select::Select *horizontal_swing_se
 
 void SinclairAC::set_display_select(select::Select *display_select)
 {
-
+    this->display_select_ = display_select;
+    this->display_select_->add_on_state_callback([this](const std::string &value, size_t index) {
+        if (value == this->display_state_)
+            return;
+        this->on_display_change(value);
+    });
 }
 
 void SinclairAC::set_display_unit_select(select::Select *display_unit_select)
 {
-
+    this->display_unit_select_ = display_unit_select;
+    this->display_unit_select_->add_on_state_callback([this](const std::string &value, size_t index) {
+        if (value == this->display_unit_state_)
+            return;
+        this->on_display_unit_change(value);
+    });
 }
 
 /*

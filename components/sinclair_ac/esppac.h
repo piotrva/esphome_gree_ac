@@ -46,18 +46,33 @@ namespace horizontal_swing_options{
 
 /* this must be same as VERTICAL_SWING_OPTIONS in climate.py */
 namespace vertical_swing_options{
-    const std::string OFF    = "00 - OFF";
-    const std::string FULL   = "01 - Swing - Full";
-    const std::string DOWN   = "02 - Swing - Down";
-    const std::string MIDD   = "03 - Swing - Mid-Down";
-    const std::string MID    = "04 - Swing - Middle";
-    const std::string MIDU   = "05 - Swing - Mid-Up";
-    const std::string UP     = "06 - Swing - Up";
-    const std::string CDOWN  = "07 - Constant - Down";
-    const std::string CMIDD  = "08 - Constant - Mid-Down";
-    const std::string CMID   = "09 - Constant - Middle";
-    const std::string CMIDU  = "10 - Constant - Mid-Up";
-    const std::string CUP    = "11 - Constant - Up";
+    const std::string OFF   = "00 - OFF";
+    const std::string FULL  = "01 - Swing - Full";
+    const std::string DOWN  = "02 - Swing - Down";
+    const std::string MIDD  = "03 - Swing - Mid-Down";
+    const std::string MID   = "04 - Swing - Middle";
+    const std::string MIDU  = "05 - Swing - Mid-Up";
+    const std::string UP    = "06 - Swing - Up";
+    const std::string CDOWN = "07 - Constant - Down";
+    const std::string CMIDD = "08 - Constant - Mid-Down";
+    const std::string CMID  = "09 - Constant - Middle";
+    const std::string CMIDU = "10 - Constant - Mid-Up";
+    const std::string CUP   = "11 - Constant - Up";
+}
+
+/* this must be same as DISPLAY_OPTIONS in climate.py */
+namespace display_options{
+    const std::string OFF  = "0 - OFF";
+    const std::string AUTO = "1 - Auto";
+    const std::string SET  = "2 - Set temperature";
+    const std::string ACT  = "3 - Actual temperature";
+    const std::string OUT  = "4 - Outside temperature";
+}
+
+/* this must be same as DISPLAY_UNIT_OPTIONS in climate.py */
+namespace display_unit_options{
+    const std::string DEGC = "C";
+    const std::string DEGF = "F";
 }
 
 
@@ -93,13 +108,19 @@ class SinclairAC : public Component, public uart::UARTDevice, public climate::Cl
         void loop() override;
 
     protected:
-        select::Select *vertical_swing_select_ = nullptr;   // Select to store manual position of vertical swing
-        select::Select *horizontal_swing_select_ = nullptr;   // Select to store manual position of horizontal swing
+        select::Select *vertical_swing_select_   = nullptr; /* Advanced vertical swing select */
+        select::Select *horizontal_swing_select_ = nullptr; /* Advanced horizontal swing select */
 
-        sensor::Sensor *current_temperature_sensor_ = nullptr;  // Sensor to use for current temperature where AC does not report
+        select::Select *display_select_          = nullptr; /* Select for setting display mode */
+        select::Select *display_unit_select_     = nullptr; /* Select for setting display temperature unit */
+
+        sensor::Sensor *current_temperature_sensor_ = nullptr; /* If user wants to replace reported temperature by an external sensor readout */
 
         std::string vertical_swing_state_;
         std::string horizontal_swing_state_;
+
+        std::string display_state_;
+        std::string display_unit_state_;
 
         bool waiting_for_response_ = false;  // Set to true if we are waiting for a response
 
@@ -116,12 +137,18 @@ class SinclairAC : public Component, public uart::UARTDevice, public climate::Cl
 
         void update_current_temperature(float temperature);
         void update_target_temperature(float temperature);
+
         void update_swing_horizontal(const std::string &swing);
         void update_swing_vertical(const std::string &swing);
 
+        void update_display(const std::string &display);
+        void update_display_unit(const std::string &display_unit);
 
         virtual void on_horizontal_swing_change(const std::string &swing) = 0;
         virtual void on_vertical_swing_change(const std::string &swing) = 0;
+
+        virtual void on_display_change(const std::string &display) = 0;
+        virtual void on_display_unit_change(const std::string &display_unit) = 0;
 
         climate::ClimateAction determine_action();
 

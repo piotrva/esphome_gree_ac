@@ -292,6 +292,9 @@ void SinclairACCNT::processUnitReport()
         this->swing_mode = climate::CLIMATE_SWING_HORIZONTAL;
     else
         this->swing_mode = climate::CLIMATE_SWING_OFF;
+    
+    this->update_display(determine_display());
+    this->update_display_unit(determine_display_unit());
 }
 
 climate::ClimateMode SinclairACCNT::determine_mode()
@@ -428,6 +431,42 @@ std::string SinclairACCNT::determine_horizontal_swing()
     }
 }
 
+std::string SinclairACCNT::determine_display()
+{
+    uint8_t mode = (this->serialProcess_.data[protocol::REPORT_DISP_MODE_BYTE] & protocol::REPORT_DISP_MODE_MASK) >> protocol::REPORT_DISP_MODE_POS;
+
+    if (!(this->serialProcess_.data[protocol::REPORT_DISP_ON_BYTE] & protocol::REPORT_DISP_ON_MASK))
+    {
+        return display_options::OFF;
+    }
+
+    switch (mode) {
+        case protocol::REPORT_DISP_MODE_AUTO:
+            return display_options::AUTO;
+        case protocol::REPORT_DISP_MODE_SET:
+            return display_options::SET;
+        case protocol::REPORT_DISP_MODE_ACT:
+            return display_options::ACT;
+        case protocol::REPORT_DISP_MODE_OUT:
+            return display_options::OUT;
+        default:
+            ESP_LOGW(TAG, "Received unknown display mode");
+            return "Unknown";
+    }
+}
+
+std::string SinclairACCNT::determine_display_unit()
+{
+    if (this->serialProcess_.data[protocol::REPORT_DISP_F_BYTE] & protocol::REPORT_DISP_F_MASK)
+    {
+        return display_unit_options::DEGF;
+    }
+    else
+    {
+        return display_unit_options::DEGC;
+    }
+}
+
 /*
  * Sensor handling
  */
@@ -486,6 +525,16 @@ void SinclairACCNT::on_horizontal_swing_change(const std::string &swing)
     // }
 
     //send_command(this->data, CommandType::Normal, CTRL_HEADER);
+}
+
+void SinclairACCNT::on_display_change(const std::string &display)
+{
+    ESP_LOGD(TAG, "Setting display mode");
+}
+
+void SinclairACCNT::on_display_unit_change(const std::string &display_unit)
+{
+    ESP_LOGD(TAG, "Setting display unit");
 }
 
 }  // namespace CNT

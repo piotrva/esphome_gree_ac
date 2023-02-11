@@ -67,8 +67,8 @@ DISPLAY_OPTIONS = [
 ]
 
 DISPLAY_UNIT_OPTIONS = [
-    "1 - C",
-    "2 - F",
+    "C",
+    "F",
 ]
 
 SWITCH_SCHEMA = switch.SWITCH_SCHEMA.extend(cv.COMPONENT_SCHEMA).extend(
