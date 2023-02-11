@@ -13,8 +13,6 @@ ESPHome interface/binding based on:
 
 **TODO**
 * Support SENDING commands
-* Support display control: OFF, AUTO, SET, CURRENT, OUT (unsupported by my unit)
-* Support temperatre display units: C, F
 * Support PLASMA (ionization mode)
 * Support XFAN
 * Support Save/8deg Heat
