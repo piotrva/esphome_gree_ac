@@ -237,7 +237,7 @@ void SinclairACCNT::handle_packet()
     if (this->serialProcess_.data[3] == protocol::CMD_IN_UNIT_REPORT)
     {
         /* here we will remove unnecessary elements - header and checksum */
-        this->serialProcess_.data.erase(0, 3); /* remove header */
+        this->serialProcess_.data.erase(this->serialProcess_.data.begin(), this->serialProcess_.data.begin() + 3); /* remove header */
         this->serialProcess_.data.pop_back();  /* remove checksum */
         /* now process the data */
         this->processUnitReport();

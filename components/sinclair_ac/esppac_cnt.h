@@ -27,10 +27,10 @@ namespace protocol {
     /* byte indexes are AFTER we remove first 4 bytes from the packet (sync, length, type) as well as a checksum */
     /* unit report packet data fields, for binary values there is no need to define bit offset/position */
     static const uint8_t REPORT_PWR_BYTE     = 4;
-    static const uint8_t REPORT_PWR_MASK     = 0b1000_0000;
+    static const uint8_t REPORT_PWR_MASK     = 0b10000000;
 
     static const uint8_t REPORT_MODE_BYTE    = 4;
-    static const uint8_t REPORT_MODE_MASK    = 0b0111_0000;
+    static const uint8_t REPORT_MODE_MASK    = 0b01110000;
     static const uint8_t REPORT_MODE_POS     = 4;
     static const uint8_t REPORT_MODE_AUTO      = 0;
     static const uint8_t REPORT_MODE_COOL      = 1;
