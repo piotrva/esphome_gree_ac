@@ -256,9 +256,6 @@ void SinclairACCNT::processUnitReport()
 {
     this->mode = determine_mode();
     this->custom_fan_mode = determine_fan_mode();
-
-    // std::string verticalSwing = determine_vertical_swing(this->data[4]);
-    // std::string horizontalSwing = determine_horizontal_swing(this->data[4]);
     
     this->update_target_temperature(
         (float)(((this->serialProcess_.data[protocol::REPORT_TEMP_SET_BYTE] & protocol::REPORT_TEMP_SET_MASK) >> protocol::REPORT_TEMP_SET_POS)
@@ -272,28 +269,22 @@ void SinclairACCNT::processUnitReport()
             - protocol::REPORT_TEMP_ACT_OFF) / protocol::REPORT_TEMP_ACT_DIV);
     }
 
-  // Also set current and outside temperature
-  // 128 means not supported
-        // if (this->current_temperature_sensor_ == nullptr) {
-        //     if(this->rx_buffer_[18] != 0x80)
-        //         this->update_current_temperature((int8_t)this->rx_buffer_[18]);
-        //     else if(this->rx_buffer_[21] != 0x80)
-        //         this->update_current_temperature((int8_t)this->rx_buffer_[21]);
-        //     else
-        //         ESP_LOGV(TAG, "Current temperature is not supported");
-        // }
+    std::string verticalSwing = determine_vertical_swing();
+    std::string horizontalSwing = determine_horizontal_swing();
 
-    // if (verticalSwing == "auto" && horizontalSwing == "auto")
-    //     this->swing_mode = climate::CLIMATE_SWING_BOTH;
-    // else if (verticalSwing == "auto")
-    //     this->swing_mode = climate::CLIMATE_SWING_VERTICAL;
-    // else if (horizontalSwing == "auto")
-    //     this->swing_mode = climate::CLIMATE_SWING_HORIZONTAL;
-    // else
-    //     this->swing_mode = climate::CLIMATE_SWING_OFF;
+    this->update_swing_vertical(verticalSwing);
+    this->update_swing_horizontal(horizontalSwing);
 
-    // this->update_swing_vertical(verticalSwing);
-    // this->update_swing_horizontal(horizontalSwing);
+    /* update legacy swing mode to somehow represent actual state and support
+       this setting without detailed settings done with additional switches */
+    if (verticalSwing == vertical_swing_options::FULL && horizontalSwing == horizontal_swing_options::FULL)
+        this->swing_mode = climate::CLIMATE_SWING_BOTH;
+    else if (verticalSwing == vertical_swing_options::FULL)
+        this->swing_mode = climate::CLIMATE_SWING_VERTICAL;
+    else if (horizontalSwing == horizontal_swing_options::FULL)
+        this->swing_mode = climate::CLIMATE_SWING_HORIZONTAL;
+    else
+        this->swing_mode = climate::CLIMATE_SWING_OFF;
 }
 
 climate::ClimateMode SinclairACCNT::determine_mode()
@@ -369,50 +360,58 @@ std::string SinclairACCNT::determine_fan_mode() {
     }
 }
 
-std::string SinclairACCNT::determine_vertical_swing(uint8_t swing) {
-    uint8_t nib = (swing >> 4) & 0x0F;  // Left nib for vertical swing
+std::string SinclairACCNT::determine_vertical_swing() {
+    uint8_t mode = (this->serialProcess_.data[protocol::REPORT_VSWING_BYTE]  & protocol::REPORT_VSWING_MASK) >> protocol::REPORT_VSWING_POS;
 
-    switch (nib) {
-        case 0x0E:
-            return "swing";
-        case 0x0F:
-            return "auto";
-        case 0x01:
-            return "up";
-        case 0x02:
-            return "up_center";
-        case 0x03:
-            return "center";
-        case 0x04:
-            return "down_center";
-        case 0x05:
-            return "down";
-        case 0x00:
-            return "unsupported";
+    switch (mode) {
+        case protocol::REPORT_VSWING_OFF:
+            return vertical_swing_options::OFF;
+        case protocol::REPORT_VSWING_FULL:
+            return vertical_swing_options::FULL;
+        case protocol::REPORT_VSWING_DOWN:
+            return vertical_swing_options::DOWN;
+        case protocol::REPORT_VSWING_MIDD:
+            return vertical_swing_options::MIDD;
+        case protocol::REPORT_VSWING_MID:
+            return vertical_swing_options::MID;
+        case protocol::REPORT_VSWING_MIDU:
+            return vertical_swing_options::MIDU;
+        case protocol::REPORT_VSWING_UP:
+            return vertical_swing_options::UP;
+        case protocol::REPORT_VSWING_CDOWN:
+            return vertical_swing_options::CDOWN;
+        case protocol::REPORT_VSWING_CMIDD:
+            return vertical_swing_options::CMIDD;
+        case protocol::REPORT_VSWING_CMID:
+            return vertical_swing_options::CMID;
+        case protocol::REPORT_VSWING_CMIDU:
+            return vertical_swing_options::CMIDU;
+        case protocol::REPORT_VSWING_CUP:
+            return vertical_swing_options::CUP;
         default:
-            ESP_LOGW(TAG, "Received unknown vertical swing mode: 0x%02X", nib);
+            ESP_LOGW(TAG, "Received unknown vertical swing mode");
             return "Unknown";
     }
 }
 
-std::string SinclairACCNT::determine_horizontal_swing(uint8_t swing) {
-    uint8_t nib = (swing >> 0) & 0x0F;  // Right nib for horizontal swing
+std::string SinclairACCNT::determine_horizontal_swing() {
+    uint8_t mode = (this->serialProcess_.data[protocol::REPORT_HSWING_BYTE]  & protocol::REPORT_HSWING_MASK) >> protocol::REPORT_HSWING_POS;
 
-    switch (nib) {
-        case 0x0D:
-            return "auto";
-        case 0x09:
-            return "left";
-        case 0x0A:
-            return "left_center";
-        case 0x06:
-            return "center";
-        case 0x0B:
-            return "right_center";
-        case 0x0C:
-            return "right";
-        case 0x00:
-            return "unsupported";
+    switch (mode) {
+        case protocol::REPORT_HSWING_OFF:
+            return horizontal_swing_options::OFF;
+        case protocol::REPORT_HSWING_FULL:
+            return horizontal_swing_options::FULL;
+        case protocol::REPORT_HSWING_CLEFT:
+            return horizontal_swing_options::CLEFT;
+        case protocol::REPORT_HSWING_CMIDL:
+            return horizontal_swing_options::CMIDL;
+        case protocol::REPORT_HSWING_CMID:
+            return horizontal_swing_options::CMID;
+        case protocol::REPORT_HSWING_CMIDR:
+            return horizontal_swing_options::CMIDR;
+        case protocol::REPORT_HSWING_CRIGHT:
+            return horizontal_swing_options::CRIGHT;
         default:
             ESP_LOGW(TAG, "Received unknown horizontal swing mode");
             return "Unknown";

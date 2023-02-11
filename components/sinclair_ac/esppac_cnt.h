@@ -26,17 +26,17 @@ namespace protocol {
 
     /* byte indexes are AFTER we remove first 4 bytes from the packet (sync, length, type) as well as a checksum */
     /* unit report packet data fields, for binary values there is no need to define bit offset/position */
-    static const uint8_t REPORT_PWR_BYTE     = 4;
-    static const uint8_t REPORT_PWR_MASK     = 0b10000000;
+    static const uint8_t REPORT_PWR_BYTE       = 4;
+    static const uint8_t REPORT_PWR_MASK       = 0b10000000;
 
-    static const uint8_t REPORT_MODE_BYTE    = 4;
-    static const uint8_t REPORT_MODE_MASK    = 0b01110000;
-    static const uint8_t REPORT_MODE_POS     = 4;
-    static const uint8_t REPORT_MODE_AUTO      = 0;
-    static const uint8_t REPORT_MODE_COOL      = 1;
-    static const uint8_t REPORT_MODE_DRY       = 2;
-    static const uint8_t REPORT_MODE_FAN       = 3;
-    static const uint8_t REPORT_MODE_HEAT      = 4;
+    static const uint8_t REPORT_MODE_BYTE      = 4;
+    static const uint8_t REPORT_MODE_MASK      = 0b01110000;
+    static const uint8_t REPORT_MODE_POS       = 4;
+    static const uint8_t REPORT_MODE_AUTO          = 0;
+    static const uint8_t REPORT_MODE_COOL          = 1;
+    static const uint8_t REPORT_MODE_DRY           = 2;
+    static const uint8_t REPORT_MODE_FAN           = 3;
+    static const uint8_t REPORT_MODE_HEAT          = 4;
 
     static const uint8_t REPORT_FAN_SPD1_BYTE  = 18;
     static const uint8_t REPORT_FAN_SPD1_MASK  = 0b00001111;
@@ -59,6 +59,33 @@ namespace protocol {
     static const uint8_t REPORT_TEMP_ACT_POS   = 0;
     static const uint8_t REPORT_TEMP_ACT_OFF   = 16;  /* temperature offset from value in packet */
     static const float   REPORT_TEMP_ACT_DIV   = 2.0; /* temperature divider from value in packet */
+
+    static const uint8_t REPORT_HSWING_BYTE    = 8;
+    static const uint8_t REPORT_HSWING_MASK    = 0b00000111;
+    static const uint8_t REPORT_HSWING_POS     = 0;
+    static const uint8_t REPORT_HSWING_OFF         = 0;
+    static const uint8_t REPORT_HSWING_FULL        = 1;
+    static const uint8_t REPORT_HSWING_CLEFT       = 2;
+    static const uint8_t REPORT_HSWING_CMIDL       = 3;
+    static const uint8_t REPORT_HSWING_CMID        = 4;
+    static const uint8_t REPORT_HSWING_CMIDR       = 5;
+    static const uint8_t REPORT_HSWING_CRIGHT      = 6;
+
+    static const uint8_t REPORT_VSWING_BYTE    = 8;
+    static const uint8_t REPORT_VSWING_MASK    = 0b11110000;
+    static const uint8_t REPORT_VSWING_POS     = 4;
+    static const uint8_t REPORT_VSWING_OFF         = 0;
+    static const uint8_t REPORT_VSWING_FULL        = 1;
+    static const uint8_t REPORT_VSWING_CUP         = 2;
+    static const uint8_t REPORT_VSWING_CMIDU       = 3;
+    static const uint8_t REPORT_VSWING_CMID        = 4;
+    static const uint8_t REPORT_VSWING_CMIDD       = 5;
+    static const uint8_t REPORT_VSWING_CDOWN       = 6;
+    static const uint8_t REPORT_VSWING_DOWN        = 7;
+    static const uint8_t REPORT_VSWING_MIDD        = 8;
+    static const uint8_t REPORT_VSWING_MID         = 9;
+    static const uint8_t REPORT_VSWING_MIDU        = 10;
+    static const uint8_t REPORT_VSWING_UP          = 11;
 }
 
 /* Define packets from AC that would be processed by software */

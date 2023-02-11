@@ -33,6 +33,34 @@ namespace fan_modes{
     const std::string FAN_TURBO = "7 - Turbo";
 }
 
+/* this must be same as HORIZONTAL_SWING_OPTIONS in climate.py */
+namespace horizontal_swing_options{
+    const std::string OFF    = "0 - OFF";
+    const std::string FULL   = "1 - Swing - Full";
+    const std::string CLEFT  = "2 - Constant - Left";
+    const std::string CMIDL  = "3 - Constant - Mid-Left";
+    const std::string CMID   = "4 - Constant - Middle";
+    const std::string CMIDR  = "5 - Constant - Mid-Right";
+    const std::string CRIGHT = "6 - Constant - Right";
+}
+
+/* this must be same as VERTICAL_SWING_OPTIONS in climate.py */
+namespace vertical_swing_options{
+    const std::string OFF    = "00 - OFF";
+    const std::string FULL   = "01 - Swing - Full";
+    const std::string DOWN   = "02 - Swing - Down";
+    const std::string MIDD   = "03 - Swing - Mid-Down";
+    const std::string MID    = "04 - Swing - Middle";
+    const std::string MIDU   = "05 - Swing - Mid-Up";
+    const std::string UP     = "06 - Swing - Up";
+    const std::string CDOWN  = "07 - Constant - Down";
+    const std::string CMIDD  = "08 - Constant - Mid-Down";
+    const std::string CMID   = "09 - Constant - Middle";
+    const std::string CMIDU  = "10 - Constant - Mid-Up";
+    const std::string CUP    = "11 - Constant - Up";
+}
+
+
 enum class CommandType { Normal, Response, Resend };
 
 typedef enum {

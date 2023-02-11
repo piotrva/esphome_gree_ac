@@ -31,29 +31,29 @@ CONF_VERTICAL_SWING_SELECT = "vertical_swing_select"
 CONF_CURRENT_TEMPERATURE_SENSOR = "current_temperature_sensor"
 
 HORIZONTAL_SWING_OPTIONS = [
-    "OFF",
-    "F_S",
-    "L__",
-    "LM_",
-    "M__",
-    "RM_",
-    "R__",
+    "0 - OFF",
+    "1 - Swing - Full",
+    "2 - Constant - Left",
+    "3 - Constant - Mid-Left",
+    "4 - Constant - Middle",
+    "5 - Constant - Mid-Right",
+    "6 - Constant - Right",
 ]
 
 
 VERTICAL_SWING_OPTIONS = [
-    "OFF",
-    "F_S",
-    "U__",
-    "UM_",
-    "M__",
-    "DM_",
-    "D__",
-    "D_S",
-    "DMS",
-    "M_S",
-    "UMS",
-    "U_S",
+    "00 - OFF",
+    "01 - Swing - Full",
+    "02 - Swing - Down",
+    "03 - Swing - Mid-Down",
+    "04 - Swing - Middle",
+    "05 - Swing - Mid-Up",
+    "06 - Swing - Up",
+    "07 - Constant - Down",
+    "08 - Constant - Mid-Down",
+    "09 - Constant - Middle",
+    "10 - Constant - Mid-Up",
+    "11 - Constant - Up",
 ]
 
 SWITCH_SCHEMA = switch.SWITCH_SCHEMA.extend(cv.COMPONENT_SCHEMA).extend(
