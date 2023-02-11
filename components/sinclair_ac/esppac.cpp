@@ -52,6 +52,11 @@ void SinclairAC::loop() {
 void SinclairAC::read_data() {
     while (available())  // Read while data is available
     {
+        /* If we had a packet or a packet had not been decoded yet - do not recieve more data */
+        if (this->serialProcess_.state == STATE_COMPLETE)
+        {
+            break;
+        }
         uint8_t c;
         this->read_byte(&c);  // Store in receive buffer
 
