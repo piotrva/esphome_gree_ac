@@ -6,6 +6,7 @@
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/components/switch/switch.h"
 #include "esphome/components/uart/uart.h"
+#include "esphome/components/time/real_time_clock.h"
 #include "esphome/core/component.h"
 
 namespace esphome {
@@ -94,7 +95,7 @@ typedef struct {
         SerialProcessState_t state;
 } SerialProcess_t;
 
-class SinclairAC : public Component, public uart::UARTDevice, public climate::Climate {
+class SinclairAC : public Component, public uart::UARTDevice, public climate::Climate, public time::RealTimeClock {
     public:
         void set_vertical_swing_select(select::Select *vertical_swing_select);
         void set_horizontal_swing_select(select::Select *horizontal_swing_select);

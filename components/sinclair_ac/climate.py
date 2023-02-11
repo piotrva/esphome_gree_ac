@@ -5,14 +5,14 @@ from esphome.const import (
 )
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import uart, climate, sensor, select, switch
+from esphome.components import uart, climate, sensor, select, switch, time
 
 AUTO_LOAD = ["switch", "sensor", "select"]
 DEPENDENCIES = ["uart"]
 
 sinclair_ac_ns = cg.esphome_ns.namespace("sinclair_ac")
 SinclairAC = sinclair_ac_ns.class_(
-    "SinclairAC", cg.Component, uart.UARTDevice, climate.Climate
+    "SinclairAC", cg.Component, uart.UARTDevice, climate.Climate, time.RealTimeClock
 )
 sinclair_ac_cnt_ns = sinclair_ac_ns.namespace("CNT")
 SinclairACCNT = sinclair_ac_cnt_ns.class_("SinclairACCNT", SinclairAC)
@@ -85,7 +85,7 @@ SCHEMA = climate.CLIMATE_SCHEMA.extend(
         cv.Optional(CONF_DISPLAY_SELECT): SELECT_SCHEMA,
         cv.Optional(CONF_DISPLAY_UNIT_SELECT): SELECT_SCHEMA,
     }
-).extend(uart.UART_DEVICE_SCHEMA)
+).extend(uart.UART_DEVICE_SCHEMA).extend(time.TIME_SCHEMA)
 
 CONFIG_SCHEMA = cv.All(
     SCHEMA.extend(
@@ -102,6 +102,7 @@ async def to_code(config):
     await climate.register_climate(var, config)
     await cg.register_component(var, config)
     await uart.register_uart_device(var, config)
+    await time.register_time(var, config)
 
     if CONF_HORIZONTAL_SWING_SELECT in config:
         conf = config[CONF_HORIZONTAL_SWING_SELECT]
