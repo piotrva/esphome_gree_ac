@@ -60,7 +60,7 @@ VERTICAL_SWING_OPTIONS = [
 
 DISPLAY_OPTIONS = [
     "0 - OFF",
-    "1 - AUTO",
+    "1 - Auto",
     "2 - Set temperature",
     "3 - Actual temperature",
     "4 - Outside temperature",

@@ -111,8 +111,8 @@ class SinclairACCNT : public SinclairAC {
     void on_horizontal_swing_change(const std::string &swing) override;
     void on_vertical_swing_change(const std::string &swing) override;
 
-    void display_change(const std::string &display) override;
-    void display_unit_change(const std::string &display_unit) override;
+    void on_display_change(const std::string &display) override;
+    void on_display_unit_change(const std::string &display_unit) override;
 
     void setup() override;
     void loop() override;
