@@ -237,7 +237,7 @@ void SinclairACCNT::handle_packet()
     if (this->serialProcess_.data[3] == protocol::CMD_IN_UNIT_REPORT)
     {
         /* here we will remove unnecessary elements - header and checksum */
-        this->serialProcess_.data.erase(this->serialProcess_.data.begin(), this->serialProcess_.data.begin() + 3); /* remove header */
+        this->serialProcess_.data.erase(this->serialProcess_.data.begin(), this->serialProcess_.data.begin() + 4); /* remove header */
         this->serialProcess_.data.pop_back();  /* remove checksum */
         /* now process the data */
         this->processUnitReport();
@@ -289,8 +289,6 @@ void SinclairACCNT::processUnitReport()
 climate::ClimateMode SinclairACCNT::determine_mode()
 {
     uint8_t mode = (this->serialProcess_.data[protocol::REPORT_MODE_BYTE] & protocol::REPORT_MODE_MASK) >> protocol::REPORT_MODE_POS;
-    ESP_LOGV(TAG, "Sinclair AC mode = 0x%02X", mode);
-    log_packet(this->serialProcess_.data);
     /* check unit power flag - if unit is off - no need to process mode */
     if (!(this->serialProcess_.data[protocol::REPORT_PWR_BYTE] & protocol::REPORT_PWR_MASK))
     {
