@@ -22,6 +22,17 @@ static const float TEMPERATURE_STEP = 1.0;   // Steps the temperature can be set
 static const float TEMPERATURE_TOLERANCE = 2;  // The tolerance to allow when checking the climate state
 static const uint8_t TEMPERATURE_THRESHOLD = 100;  // Maximum temperature the AC can report (formally 119.5 for sinclair protocol, but 100 is impossible, soo...)
 
+namespace fan_modes{
+    const std::string FAN_AUTO  = "0 - Auto";
+    const std::string FAN_QUIET = "1 - Quiet";
+    const std::string FAN_LOW   = "2 - Low";
+    const std::string FAN_MEDL  = "3 - Medium-Low";
+    const std::string FAN_MED   = "4 - Medium";
+    const std::string FAN_MEDH  = "5 - Medium-High";
+    const std::string FAN_HIGH  = "6 - High";
+    const std::string FAN_TURBO = "7 - Turbo";
+}
+
 enum class CommandType { Normal, Response, Resend };
 
 typedef enum {
