@@ -15,6 +15,7 @@ enum class ACState {
 };
 
 namespace protocol {
+    /* packet types */
     static const uint8_t CMD_IN_UNIT_REPORT  = 0x31;
     static const uint8_t CMD_OUT_PARAMS_SET  = 0x01;
     static const uint8_t CMD_OUT_SYNC_TIME   = 0x03;
@@ -22,6 +23,20 @@ namespace protocol {
     static const uint8_t CMD_OUT_UNKNOWN_1   = 0x02; /* 7e 7e 10 02 00 00 00 00 00 00 01 00 28 1e 19 23 23 00 b8 */
     static const uint8_t CMD_IN_UNKNOWN_1    = 0x44; /* 7e 7e 1a 44 01 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 */
     static const uint8_t CMD_IN_UNKNOWN_2    = 0x33; /* 7e 7e 2f 33 00 00 40 00 09 20 19 0a 00 10 00 14 17 5b 08 08 00 00 00 00 00 00 00 00 01 00 00 0d 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 */
+
+    /* byte indexes are AFTER we remove first 4 bytes from the packet (sync, length, type) as well as a checksum */
+    /* unit report packet data fields, for binary values there is no need to define bit offset/position */
+    static const uint8_t REPORT_PWR_BYTE     = 4;
+    static const uint8_t REPORT_PWR_MASK     = 0b1000_0000;
+
+    static const uint8_t REPORT_MODE_BYTE    = 4;
+    static const uint8_t REPORT_MODE_MASK    = 0b0111_0000;
+    static const uint8_t REPORT_MODE_POS     = 4;
+    static const uint8_t REPORT_MODE_AUTO      = 0;
+    static const uint8_t REPORT_MODE_COOL      = 1;
+    static const uint8_t REPORT_MODE_DRY       = 2;
+    static const uint8_t REPORT_MODE_FAN       = 3;
+    static const uint8_t REPORT_MODE_HEAT      = 4;
 }
 
 /* Define packets from AC that would be processed by software */
@@ -40,10 +55,10 @@ class SinclairACCNT : public SinclairAC {
     protected:
     ACState state_ = ACState::Initializing;  // Stores the internal state of the AC, used during initialization
 
-    std::vector<uint8_t> data = std::vector<uint8_t>(10);  // Stores the data received from the AC
+    //std::vector<uint8_t> data = std::vector<uint8_t>(255);  // Stores the data received from the AC
     void handle_poll();
 
-    void set_data(bool set);
+    void processUnitReport();
 
     void send_command(std::vector<uint8_t> command, CommandType type, uint8_t header);
     void send_packet(const std::vector<uint8_t> &command, CommandType type);
@@ -51,7 +66,7 @@ class SinclairACCNT : public SinclairAC {
     bool verify_packet();
     void handle_packet();
 
-    climate::ClimateMode determine_mode(uint8_t mode);
+    climate::ClimateMode determine_mode();
     std::string determine_fan_speed(uint8_t speed);
 
     std::string determine_vertical_swing(uint8_t swing);

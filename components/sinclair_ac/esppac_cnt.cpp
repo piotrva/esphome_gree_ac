@@ -7,13 +7,15 @@ namespace CNT {
 
 static const char *const TAG = "sinclair_ac.serial";
 
-void SinclairACCNT::setup() {
+void SinclairACCNT::setup()
+{
     SinclairAC::setup();
 
     ESP_LOGD(TAG, "Using serial protocol for Sinclair AC");
 }
 
-void SinclairACCNT::loop() {
+void SinclairACCNT::loop()
+{
     /* this reads data from UART */
     SinclairAC::loop();
 
@@ -58,33 +60,33 @@ void SinclairACCNT::control(const climate::ClimateCall &call) {
     if (call.get_mode().has_value()) {
         ESP_LOGV(TAG, "Requested mode change");
 
-        switch (*call.get_mode()) {
-            case climate::CLIMATE_MODE_COOL:
-                this->data[0] = 0x34;
-                break;
-            case climate::CLIMATE_MODE_HEAT:
-                this->data[0] = 0x44;
-                break;
-            case climate::CLIMATE_MODE_DRY:
-                this->data[0] = 0x24;
-                break;
-            case climate::CLIMATE_MODE_HEAT_COOL:
-                this->data[0] = 0x04;
-                break;
-            case climate::CLIMATE_MODE_FAN_ONLY:
-                this->data[0] = 0x64;
-                break;
-            case climate::CLIMATE_MODE_OFF:
-                this->data[0] = this->data[0] & 0xF0;  // Strip right nib to turn AC off
-                break;
-            default:
-                ESP_LOGV(TAG, "Unsupported mode requested");
-                break;
-        }
+        // switch (*call.get_mode()) {
+        //     case climate::CLIMATE_MODE_COOL:
+        //         this->data[0] = 0x34;
+        //         break;
+        //     case climate::CLIMATE_MODE_HEAT:
+        //         this->data[0] = 0x44;
+        //         break;
+        //     case climate::CLIMATE_MODE_DRY:
+        //         this->data[0] = 0x24;
+        //         break;
+        //     case climate::CLIMATE_MODE_HEAT_COOL:
+        //         this->data[0] = 0x04;
+        //         break;
+        //     case climate::CLIMATE_MODE_FAN_ONLY:
+        //         this->data[0] = 0x64;
+        //         break;
+        //     case climate::CLIMATE_MODE_OFF:
+        //         this->data[0] = this->data[0] & 0xF0;  // Strip right nib to turn AC off
+        //         break;
+        //     default:
+        //         ESP_LOGV(TAG, "Unsupported mode requested");
+        //         break;
+        // }
     }
 
     if (call.get_target_temperature().has_value()) {
-        this->data[1] = *call.get_target_temperature() / TEMPERATURE_STEP;
+        //this->data[1] = *call.get_target_temperature() / TEMPERATURE_STEP;
     }
 
     if (call.get_custom_fan_mode().has_value()) {
@@ -93,88 +95,50 @@ void SinclairACCNT::control(const climate::ClimateCall &call) {
         if(this->custom_preset != "Normal")
         {
             ESP_LOGV(TAG, "Resetting preset");
-            this->data[5] = (this->data[5] & 0xF0);  // Clear right nib for normal mode
+            //this->data[5] = (this->data[5] & 0xF0);  // Clear right nib for normal mode
         }
 
         std::string fanMode = *call.get_custom_fan_mode();
 
-        if (fanMode == "Automatic")
-            this->data[3] = 0xA0;
-        else if (fanMode == "1")
-            this->data[3] = 0x30;
-        else if (fanMode == "2")
-            this->data[3] = 0x40;
-        else if (fanMode == "3")
-            this->data[3] = 0x50;
-        else if (fanMode == "4")
-            this->data[3] = 0x60;
-        else if (fanMode == "5")
-            this->data[3] = 0x70;
-        else
-            ESP_LOGV(TAG, "Unsupported fan mode requested");
+        // if (fanMode == "Automatic")
+        //     this->data[3] = 0xA0;
+        // else if (fanMode == "1")
+        //     this->data[3] = 0x30;
+        // else if (fanMode == "2")
+        //     this->data[3] = 0x40;
+        // else if (fanMode == "3")
+        //     this->data[3] = 0x50;
+        // else if (fanMode == "4")
+        //     this->data[3] = 0x60;
+        // else if (fanMode == "5")
+        //     this->data[3] = 0x70;
+        // else
+        //     ESP_LOGV(TAG, "Unsupported fan mode requested");
     }
 
     if (call.get_swing_mode().has_value()) {
         ESP_LOGV(TAG, "Requested swing mode change");
 
-        switch (*call.get_swing_mode()) {
-            case climate::CLIMATE_SWING_BOTH:
-                this->data[4] = 0xFD;
-                break;
-            case climate::CLIMATE_SWING_OFF:
-                this->data[4] = 0x36;  // Reset both to center
-                break;
-            case climate::CLIMATE_SWING_VERTICAL:
-                this->data[4] = 0xF6;  // Swing vertical, horizontal center
-                break;
-            case climate::CLIMATE_SWING_HORIZONTAL:
-                this->data[4] = 0x3D;  // Swing horizontal, vertical center
-                break;
-            default:
-                ESP_LOGV(TAG, "Unsupported swing mode requested");
-                break;
-        }
-    }
-
-    //send_command(this->data, CommandType::Normal, CTRL_HEADER);
-}
-
-/*
- * Set the data array to the fields
- */
-void SinclairACCNT::set_data(bool set) {
-    this->mode = determine_mode(this->data[0]);
-    this->custom_fan_mode = determine_fan_speed(this->data[3]);
-
-    std::string verticalSwing = determine_vertical_swing(this->data[4]);
-    std::string horizontalSwing = determine_horizontal_swing(this->data[4]);
-    
-    this->update_target_temperature((int8_t) this->data[1]);
-
-    if (set) {
-  // Also set current and outside temperature
-  // 128 means not supported
-        // if (this->current_temperature_sensor_ == nullptr) {
-        //     if(this->rx_buffer_[18] != 0x80)
-        //         this->update_current_temperature((int8_t)this->rx_buffer_[18]);
-        //     else if(this->rx_buffer_[21] != 0x80)
-        //         this->update_current_temperature((int8_t)this->rx_buffer_[21]);
-        //     else
-        //         ESP_LOGV(TAG, "Current temperature is not supported");
+        // switch (*call.get_swing_mode()) {
+        //     case climate::CLIMATE_SWING_BOTH:
+        //         this->data[4] = 0xFD;
+        //         break;
+        //     case climate::CLIMATE_SWING_OFF:
+        //         this->data[4] = 0x36;  // Reset both to center
+        //         break;
+        //     case climate::CLIMATE_SWING_VERTICAL:
+        //         this->data[4] = 0xF6;  // Swing vertical, horizontal center
+        //         break;
+        //     case climate::CLIMATE_SWING_HORIZONTAL:
+        //         this->data[4] = 0x3D;  // Swing horizontal, vertical center
+        //         break;
+        //     default:
+        //         ESP_LOGV(TAG, "Unsupported swing mode requested");
+        //         break;
         // }
     }
 
-    if (verticalSwing == "auto" && horizontalSwing == "auto")
-        this->swing_mode = climate::CLIMATE_SWING_BOTH;
-    else if (verticalSwing == "auto")
-        this->swing_mode = climate::CLIMATE_SWING_VERTICAL;
-    else if (horizontalSwing == "auto")
-        this->swing_mode = climate::CLIMATE_SWING_HORIZONTAL;
-    else
-        this->swing_mode = climate::CLIMATE_SWING_OFF;
-
-    this->update_swing_vertical(verticalSwing);
-    this->update_swing_horizontal(horizontalSwing);
+    //send_command(this->data, CommandType::Normal, CTRL_HEADER);
 }
 
 /*
@@ -223,7 +187,8 @@ void SinclairACCNT::handle_poll() {
  * Packet handling
  */
 
-bool SinclairACCNT::verify_packet() {
+bool SinclairACCNT::verify_packet()
+{
     /* At least 2 sync bytes + length + type + checksum */
     if (this->serialProcess_.data.size() < 5)
     {
@@ -267,42 +232,80 @@ bool SinclairACCNT::verify_packet() {
     return true;
 }
 
-void SinclairACCNT::handle_packet() {
+void SinclairACCNT::handle_packet()
+{
     if (this->serialProcess_.data[3] == protocol::CMD_IN_UNIT_REPORT)
     {
-        
+        /* here we will remove unnecessary elements - header and checksum */
+        this->serialProcess_.data.erase(0, 3); /* remove header */
+        this->serialProcess_.data.pop_back();  /* remove checksum */
+        /* now process the data */
+        this->processUnitReport();
+        this->publish_state();
+    } 
+    else 
+    {
+        ESP_LOGD(TAG, "Received unknown packet");
     }
-    // if (this->rx_buffer_[0] == 0) {
-    //     this->data = std::vector<uint8_t>(this->rx_buffer_.begin() + 2, this->rx_buffer_.begin() + 12);
-
-    //     this->set_data(true);
-    //     this->publish_state();
-
-    //     if (this->state_ != ACState::Ready)
-    //         this->state_ = ACState::Ready;  // Mark as ready after first poll
-    // } else {
-    //     ESP_LOGD(TAG, "Received unknown packet");
-    // }
 }
 
-climate::ClimateMode SinclairACCNT::determine_mode(uint8_t mode) {
-    uint8_t nib1 = (mode >> 4) & 0x0F;  // Left nib for mode
-    uint8_t nib2 = (mode >> 0) & 0x0F;  // Right nib for power state
+/*
+ * This decodes frame recieved from AC Unit
+ */
+void SinclairACCNT::processUnitReport()
+{
+    this->mode = determine_mode();
+    // this->custom_fan_mode = determine_fan_speed(this->data[3]);
 
-    if (nib2 == 0x00)
-        return climate::CLIMATE_MODE_OFF;
+    // std::string verticalSwing = determine_vertical_swing(this->data[4]);
+    // std::string horizontalSwing = determine_horizontal_swing(this->data[4]);
+    
+    //this->update_target_temperature((int8_t) this->data[1]);
 
-    switch (nib1) {
-        case 0x00:  // Auto
-            return climate::CLIMATE_MODE_HEAT_COOL;
-        case 0x03:  // Cool
+  // Also set current and outside temperature
+  // 128 means not supported
+        // if (this->current_temperature_sensor_ == nullptr) {
+        //     if(this->rx_buffer_[18] != 0x80)
+        //         this->update_current_temperature((int8_t)this->rx_buffer_[18]);
+        //     else if(this->rx_buffer_[21] != 0x80)
+        //         this->update_current_temperature((int8_t)this->rx_buffer_[21]);
+        //     else
+        //         ESP_LOGV(TAG, "Current temperature is not supported");
+        // }
+
+    // if (verticalSwing == "auto" && horizontalSwing == "auto")
+    //     this->swing_mode = climate::CLIMATE_SWING_BOTH;
+    // else if (verticalSwing == "auto")
+    //     this->swing_mode = climate::CLIMATE_SWING_VERTICAL;
+    // else if (horizontalSwing == "auto")
+    //     this->swing_mode = climate::CLIMATE_SWING_HORIZONTAL;
+    // else
+    //     this->swing_mode = climate::CLIMATE_SWING_OFF;
+
+    // this->update_swing_vertical(verticalSwing);
+    // this->update_swing_horizontal(horizontalSwing);
+}
+
+climate::ClimateMode SinclairACCNT::determine_mode()
+{
+    /* check unit power flag - if unit is off - no need to process mode */
+    if (!(this->serialProcess_.data[protocol::REPORT_PWR_BYTE] & protocol::REPORT_PWR_MASK))
+    {
+        climate::CLIMATE_MODE_OFF;
+    }
+
+    switch ((this->serialProcess_.data[protocol::REPORT_MODE_BYTE] & protocol::REPORT_MODE_MASK) >> protocol::REPORT_MODE_POS)
+    {
+        case protocol::REPORT_MODE_AUTO:
+            return climate::CLIMATE_MODE_AUTO;
+        case protocol::REPORT_MODE_COOL:
             return climate::CLIMATE_MODE_COOL;
-        case 0x04:  // Heat
-            return climate::CLIMATE_MODE_HEAT;
-        case 0x02:  // Dry
+        case protocol::REPORT_MODE_DRY:
             return climate::CLIMATE_MODE_DRY;
-        case 0x06:  // Fan only
+        case protocol::REPORT_MODE_FAN:
             return climate::CLIMATE_MODE_FAN_ONLY;
+        case protocol::REPORT_MODE_HEAT:
+            return climate::CLIMATE_MODE_HEAT;
         default:
             ESP_LOGW(TAG, "Received unknown climate mode");
             return climate::CLIMATE_MODE_OFF;
@@ -389,24 +392,24 @@ void SinclairACCNT::on_vertical_swing_change(const std::string &swing) {
 
     ESP_LOGD(TAG, "Setting vertical swing position");
 
-    if (swing == "down")
-        this->data[4] = (this->data[4] & 0x0F) + 0x50;
-    else if (swing == "down_center")
-        this->data[4] = (this->data[4] & 0x0F) + 0x40;
-    else if (swing == "center")
-        this->data[4] = (this->data[4] & 0x0F) + 0x30;
-    else if (swing == "up_center")
-        this->data[4] = (this->data[4] & 0x0F) + 0x20;
-    else if (swing == "up")
-        this->data[4] = (this->data[4] & 0x0F) + 0x10;
-    else if (swing == "swing")
-        this->data[4] = (this->data[4] & 0x0F) + 0xE0;
-    else if (swing == "auto")
-        this->data[4] = (this->data[4] & 0x0F) + 0xF0;
-    else {
-        ESP_LOGW(TAG, "Unsupported vertical swing position received");
-        return;
-    }
+    // if (swing == "down")
+    //     this->data[4] = (this->data[4] & 0x0F) + 0x50;
+    // else if (swing == "down_center")
+    //     this->data[4] = (this->data[4] & 0x0F) + 0x40;
+    // else if (swing == "center")
+    //     this->data[4] = (this->data[4] & 0x0F) + 0x30;
+    // else if (swing == "up_center")
+    //     this->data[4] = (this->data[4] & 0x0F) + 0x20;
+    // else if (swing == "up")
+    //     this->data[4] = (this->data[4] & 0x0F) + 0x10;
+    // else if (swing == "swing")
+    //     this->data[4] = (this->data[4] & 0x0F) + 0xE0;
+    // else if (swing == "auto")
+    //     this->data[4] = (this->data[4] & 0x0F) + 0xF0;
+    // else {
+    //     ESP_LOGW(TAG, "Unsupported vertical swing position received");
+    //     return;
+    // }
 
     //send_command(this->data, CommandType::Normal, CTRL_HEADER);
 }
@@ -417,22 +420,22 @@ void SinclairACCNT::on_horizontal_swing_change(const std::string &swing) {
 
     ESP_LOGD(TAG, "Setting horizontal swing position");
 
-    if (swing == "left")
-        this->data[4] = (this->data[4] & 0xF0) + 0x09;
-    else if (swing == "left_center")
-        this->data[4] = (this->data[4] & 0xF0) + 0x0A;
-    else if (swing == "center")
-        this->data[4] = (this->data[4] & 0xF0) + 0x06;
-    else if (swing == "right_center")
-        this->data[4] = (this->data[4] & 0xF0) + 0x0B;
-    else if (swing == "right")
-        this->data[4] = (this->data[4] & 0xF0) + 0x0C;
-    else if (swing == "auto")
-        this->data[4] = (this->data[4] & 0xF0) + 0x0D;
-    else {
-        ESP_LOGW(TAG, "Unsupported horizontal swing position received");
-        return;
-    }
+    // if (swing == "left")
+    //     this->data[4] = (this->data[4] & 0xF0) + 0x09;
+    // else if (swing == "left_center")
+    //     this->data[4] = (this->data[4] & 0xF0) + 0x0A;
+    // else if (swing == "center")
+    //     this->data[4] = (this->data[4] & 0xF0) + 0x06;
+    // else if (swing == "right_center")
+    //     this->data[4] = (this->data[4] & 0xF0) + 0x0B;
+    // else if (swing == "right")
+    //     this->data[4] = (this->data[4] & 0xF0) + 0x0C;
+    // else if (swing == "auto")
+    //     this->data[4] = (this->data[4] & 0xF0) + 0x0D;
+    // else {
+    //     ESP_LOGW(TAG, "Unsupported horizontal swing position received");
+    //     return;
+    // }
 
     //send_command(this->data, CommandType::Normal, CTRL_HEADER);
 }
