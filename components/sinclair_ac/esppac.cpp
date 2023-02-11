@@ -8,6 +8,17 @@ namespace sinclair_ac {
 
 static const char *const TAG = "sinclair_ac";
 
+namespace fan_modes{
+    const std::string FAN_AUTO  = "0 - Auto";
+    const std::string FAN_QUIET = "1 - Quiet";
+    const std::string FAN_LOW   = "2 - Low";
+    const std::string FAN_MEDL  = "3 - Medium-Low";
+    const std::string FAN_MED   = "4 - Medium";
+    const std::string FAN_MEDH  = "5 - Medium-High";
+    const std::string FAN_HIGH  = "6 - High";
+    const std::string FAN_TURBO = "7 - Turbo";
+}
+
 climate::ClimateTraits SinclairAC::traits() {
     auto traits = climate::ClimateTraits();
 
@@ -22,14 +33,14 @@ climate::ClimateTraits SinclairAC::traits() {
     traits.set_supported_modes({climate::CLIMATE_MODE_OFF, climate::CLIMATE_MODE_AUTO, climate::CLIMATE_MODE_COOL,
                                 climate::CLIMATE_MODE_HEAT, climate::CLIMATE_MODE_FAN_ONLY, climate::CLIMATE_MODE_DRY});
 
-    traits.add_supported_custom_fan_mode("0 - Auto");
-    traits.add_supported_custom_fan_mode("1 - Quiet");
-    traits.add_supported_custom_fan_mode("2 - Low");
-    traits.add_supported_custom_fan_mode("3 - Med-Low");
-    traits.add_supported_custom_fan_mode("4 - Medium");
-    traits.add_supported_custom_fan_mode("5 - Med-High");
-    traits.add_supported_custom_fan_mode("6 - High");
-    traits.add_supported_custom_fan_mode("7 - Turbo");
+    traits.add_supported_custom_fan_mode(fan_modes::FAN_AUTO);
+    traits.add_supported_custom_fan_mode(fan_modes::FAN_QUIET);
+    traits.add_supported_custom_fan_mode(fan_modes::FAN_LOW);
+    traits.add_supported_custom_fan_mode(fan_modes::FAN_MEDL);
+    traits.add_supported_custom_fan_mode(fan_modes::FAN_MED);
+    traits.add_supported_custom_fan_mode(fan_modes::FAN_MEDH);
+    traits.add_supported_custom_fan_mode(fan_modes::FAN_HIGH);
+    traits.add_supported_custom_fan_mode(fan_modes::FAN_TURBO);
 
     traits.set_supported_swing_modes({climate::CLIMATE_SWING_OFF, climate::CLIMATE_SWING_BOTH,
                                       climate::CLIMATE_SWING_VERTICAL, climate::CLIMATE_SWING_HORIZONTAL});

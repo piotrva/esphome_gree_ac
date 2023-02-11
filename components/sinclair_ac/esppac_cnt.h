@@ -37,6 +37,17 @@ namespace protocol {
     static const uint8_t REPORT_MODE_DRY       = 2;
     static const uint8_t REPORT_MODE_FAN       = 3;
     static const uint8_t REPORT_MODE_HEAT      = 4;
+
+    static const uint8_t REPORT_FAN_SPD1_BYTE  = 18;
+    static const uint8_t REPORT_FAN_SPD1_MASK  = 0b00001111;
+    static const uint8_t REPORT_FAN_SPD1_POS   = 0;
+    static const uint8_t REPORT_FAN_SPD2_BYTE  = 4;
+    static const uint8_t REPORT_FAN_SPD2_MASK  = 0b00000011;
+    static const uint8_t REPORT_FAN_SPD2_POS   = 0;
+    static const uint8_t REPORT_FAN_QUIET_BYTE = 16;
+    static const uint8_t REPORT_FAN_QUIET_MASK = 0b00001000;
+    static const uint8_t REPORT_FAN_TURBO_BYTE = 6;
+    static const uint8_t REPORT_FAN_TURBO_MASK = 0b00000001;
 }
 
 /* Define packets from AC that would be processed by software */
@@ -67,7 +78,7 @@ class SinclairACCNT : public SinclairAC {
     void handle_packet();
 
     climate::ClimateMode determine_mode();
-    std::string determine_fan_speed(uint8_t speed);
+    std::string determine_fan_mode();
 
     std::string determine_vertical_swing(uint8_t swing);
     std::string determine_horizontal_swing(uint8_t swing);
