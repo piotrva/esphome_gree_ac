@@ -34,7 +34,10 @@ void SinclairACCNT::loop()
 
         /* A valid recieved packet of accepted type marks module as being ready */
         if (this->state_ != ACState::Ready)
+        {
             this->state_ = ACState::Ready;  
+            Component::status_clear_error();
+        }
 
         handle_packet();
     }
@@ -43,7 +46,10 @@ void SinclairACCNT::loop()
     if (millis() - this->last_packet_received_ > 5000UL)
     {
         if (this->state_ != ACState::Initializing)
-            this->state_ = ACState::Initializing; 
+        {
+            this->state_ = ACState::Initializing;
+            Component::status_set_error();
+        }
     }
 
     handle_poll();  // Handle sending poll packets
