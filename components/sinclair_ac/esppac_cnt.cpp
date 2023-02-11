@@ -213,41 +213,45 @@ void SinclairACCNT::handle_poll() {
  */
 
 bool SinclairACCNT::verify_packet() {
-//     if (this->rx_buffer_.size() < 12) {
-//         ESP_LOGW(TAG, "Dropping invalid packet (length)");
+    /* At least 2 sync bytes + length + type + checksum */
+    if (this->serialProcess_.data.size() < 5)
+    {
+        ESP_LOGW(TAG, "Dropping invalid packet (length)");
+        return false;
+    }
 
-//         this->rx_buffer_.clear();  // Reset buffer
-//         return false;
-//     }
+    /* The header (aka sync bytes) was checked by SinclairAC::read_data() */
 
-//   // Check if header matches
-//     if (this->rx_buffer_[0] != 0 && this->rx_buffer_[0] != 0) {
-//         ESP_LOGW(TAG, "Dropping invalid packet (header)");
+    /* The frame len was assumed by SinclairAC::read_data() */
 
-//         this->rx_buffer_.clear();  // Reset buffer
-//         return false;
-//     }
+    /* Check if this packet type sould be processed */
+    bool commandAllowed = false;
+    for (uint8_t packet : allowedPackets)
+    {
+        if (this->serialProcess_.data[3] == packet)
+        {
+            commandAllowed = true;
+            break;
+        }
+    }
+    if (!commandAllowed)
+    {
+        ESP_LOGW(TAG, "Dropping invalid packet (command [%02X] not allowed)", this->serialProcess_.data[3]);
+        return false;
+    }
 
-//   // Packet length minus header, packet length and checksum
-//     if (this->rx_buffer_[1] != this->rx_buffer_.size() - 3) {
-//         ESP_LOGD(TAG, "Dropping invalid packet (length mismatch)");
-
-//         this->rx_buffer_.clear();  // Reset buffer
-//         return false;
-//     }
-
-//     uint8_t checksum = 0;
-
-//     for (uint8_t b : this->rx_buffer_) {
-//         checksum += b;
-//     }
-
-//     if (checksum != 0) {
-//         ESP_LOGD(TAG, "Dropping invalid packet (checksum)");
-
-//         this->rx_buffer_.clear();  // Reset buffer
-//         return false;
-//     }
+    /* Check checksum - sum of al bytes except sync and checksum itself% 0x100 
+       the module would be realized by the fact that we are using uint8_t*/
+    uint8_t checksum = 0;
+    for (uint8_t i = 2 ; i < this->serialProcess_.data.size() - 1 ; i++)
+    {
+        checksum += this->serialProcess_.data[i];
+    }
+    if (checksum != this->serialProcess_.data[this->serialProcess_.data.size()-1])
+    {
+        ESP_LOGD(TAG, "Dropping invalid packet (checksum)");
+        return false;
+    }
 
     return true;
 }

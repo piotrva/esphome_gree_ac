@@ -14,6 +14,10 @@ enum class ACState {
     Ready,   // All done, ready to receive regular packets
 };
 
+/* Define packets from AC that would be processed by software
+   0x31 - Unit Report */
+const std::vector<uint8_t> allowedPackets = {0x31};
+
 class SinclairACCNT : public SinclairAC {
     public:
     void control(const climate::ClimateCall &call) override;
