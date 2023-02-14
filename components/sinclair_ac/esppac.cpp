@@ -182,6 +182,46 @@ void SinclairAC::update_display_unit(const std::string &display_unit)
     }
 }
 
+void SinclairAC::update_plasma(bool plasma)
+{
+    this->plasma_state_ = plasma;
+
+    if (this->plasma_switch_ != nullptr)
+    {
+        this->plasma_switch_->publish_state(this->plasma_state_);
+    }
+}
+
+void SinclairAC::update_sleep(bool sleep)
+{
+    this->sleep_state_ = sleep;
+
+    if (this->sleep_switch_ != nullptr)
+    {
+        this->sleep_switch_->publish_state(this->sleep_state_);
+    }
+}
+
+void SinclairAC::update_xfan(bool xfan)
+{
+    this->xfan_state_ = xfan;
+
+    if (this->xfan_switch_ != nullptr)
+    {
+        this->xfan_switch_->publish_state(this->xfan_state_);
+    }
+}
+
+void SinclairAC::update_save(bool save)
+{
+    this->save_state_ = save;
+
+    if (this->save_switch_ != nullptr)
+    {
+        this->save_switch_->publish_state(this->save_state_);
+    }
+}
+
 climate::ClimateAction SinclairAC::determine_action()
 {
     if (this->mode == climate::CLIMATE_MODE_OFF) {
@@ -252,6 +292,46 @@ void SinclairAC::set_display_unit_select(select::Select *display_unit_select)
         if (value == this->display_unit_state_)
             return;
         this->on_display_unit_change(value);
+    });
+}
+
+void SinclairAC::set_plasma_switch(switch_::Switch *plasma_switch)
+{
+    this->plasma_switch_ = plasma_switch;
+    this->plasma_switch_->add_on_state_callback([this](bool state) {
+        if (state == this->plasma_state_)
+            return;
+        this->on_plasma_change(state);
+    });
+}
+
+void SinclairAC::set_sleep_switch(switch_::Switch *sleep_switch)
+{
+    this->sleep_switch_ = sleep_switch;
+    this->sleep_switch_->add_on_state_callback([this](bool state) {
+        if (state == this->sleep_state_)
+            return;
+        this->on_sleep_change(state);
+    });
+}
+
+void SinclairAC::set_xfan_switch(switch_::Switch *xfan_switch)
+{
+    this->xfan_switch_ = xfan_switch;
+    this->xfan_switch_->add_on_state_callback([this](bool state) {
+        if (state == this->xfan_state_)
+            return;
+        this->on_xfan_change(state);
+    });
+}
+
+void SinclairAC::set_save_switch(switch_::Switch *save_switch)
+{
+    this->save_switch_ = save_switch;
+    this->save_switch_->add_on_state_callback([this](bool state) {
+        if (state == this->save_state_)
+            return;
+        this->on_save_change(state);
     });
 }
 

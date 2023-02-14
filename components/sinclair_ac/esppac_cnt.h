@@ -7,8 +7,6 @@ namespace esphome {
 namespace sinclair_ac {
 namespace CNT {
 
-static const int POLL_INTERVAL = 5000;  // The interval at which to poll the AC
-
 enum class ACState {
     Initializing,  // Before first query response is receive
     Ready,   // All done, ready to receive regular packets
@@ -99,6 +97,20 @@ namespace protocol {
 
     static const uint8_t REPORT_DISP_F_BYTE    = 7;
     static const uint8_t REPORT_DISP_F_MASK    = 0b10000000;
+
+    static const uint8_t REPORT_PLASMA1_BYTE   = 6;
+    static const uint8_t REPORT_PLASMA1_MASK   = 0b00000100;
+    static const uint8_t REPORT_PLASMA2_BYTE   = 0;
+    static const uint8_t REPORT_PLASMA2_MASK   = 0b00000100;
+
+    static const uint8_t REPORT_SLEEP_BYTE     = 4;
+    static const uint8_t REPORT_SLEEP_MASK     = 0b00001000;
+
+    static const uint8_t REPORT_XFAN_BYTE      = 6;
+    static const uint8_t REPORT_XFAN_MASK      = 0b00001000;
+
+    static const uint8_t REPORT_SAVE_BYTE      = 11;
+    static const uint8_t REPORT_SAVE_MASK      = 0b01000000;
 }
 
 /* Define packets from AC that would be processed by software */
@@ -113,6 +125,11 @@ class SinclairACCNT : public SinclairAC {
 
     void on_display_change(const std::string &display) override;
     void on_display_unit_change(const std::string &display_unit) override;
+
+    void on_plasma_change(bool plasma) override;
+    void on_sleep_change(bool sleep) override;
+    void on_xfan_change(bool xfan) override;
+    void on_save_change(bool save) override;
 
     void setup() override;
     void loop() override;
@@ -139,6 +156,11 @@ class SinclairACCNT : public SinclairAC {
 
     std::string determine_display();
     std::string determine_display_unit();
+
+    bool determine_plasma();
+    bool determine_sleep();
+    bool determine_xfan();
+    bool determine_save();
 };
 
 }  // namespace CNT

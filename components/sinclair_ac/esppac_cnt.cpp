@@ -301,6 +301,11 @@ void SinclairACCNT::processUnitReport()
     
     this->update_display(determine_display());
     this->update_display_unit(determine_display_unit());
+
+    this->update_plasma(determine_plasma());
+    this->update_sleep(determine_sleep());
+    this->update_xfan(determine_xfan());
+    this->update_save(determine_save());
 }
 
 climate::ClimateMode SinclairACCNT::determine_mode()
@@ -473,6 +478,25 @@ std::string SinclairACCNT::determine_display_unit()
     }
 }
 
+bool SinclairACCNT::determine_plasma(){
+    bool plasma1 = (this->serialProcess_.data[protocol::REPORT_PLASMA1_BYTE] & protocol::REPORT_PLASMA1_MASK) != 0;
+    bool plasma2 = (this->serialProcess_.data[protocol::REPORT_PLASMA2_BYTE] & protocol::REPORT_PLASMA2_MASK) != 0;
+    return plasma1 || plasma2;
+}
+
+bool SinclairACCNT::determine_sleep(){
+    return (this->serialProcess_.data[protocol::REPORT_SLEEP_BYTE] & protocol::REPORT_SLEEP_MASK) != 0;
+}
+
+bool SinclairACCNT::determine_xfan(){
+    return (this->serialProcess_.data[protocol::REPORT_XFAN_BYTE] & protocol::REPORT_XFAN_MASK) != 0;
+}
+
+bool SinclairACCNT::determine_save(){
+    return (this->serialProcess_.data[protocol::REPORT_SAVE_BYTE] & protocol::REPORT_SAVE_MASK) != 0;
+}
+
+
 /*
  * Sensor handling
  */
@@ -541,6 +565,26 @@ void SinclairACCNT::on_display_change(const std::string &display)
 void SinclairACCNT::on_display_unit_change(const std::string &display_unit)
 {
     ESP_LOGD(TAG, "Setting display unit");
+}
+
+void SinclairACCNT::on_plasma_change(bool plasma)
+{
+    ESP_LOGD(TAG, "Setting plasma");
+}
+
+void SinclairACCNT::on_sleep_change(bool sleep)
+{
+    ESP_LOGD(TAG, "Setting sleep");
+}
+
+void SinclairACCNT::on_xfan_change(bool xfan)
+{
+    ESP_LOGD(TAG, "Setting zfan");
+}
+
+void SinclairACCNT::on_save_change(bool save)
+{
+    ESP_LOGD(TAG, "Setting save");
 }
 
 }  // namespace CNT

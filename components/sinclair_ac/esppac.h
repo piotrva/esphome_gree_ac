@@ -102,6 +102,11 @@ class SinclairAC : public Component, public uart::UARTDevice, public climate::Cl
         void set_display_select(select::Select *display_select);
         void set_display_unit_select(select::Select *display_unit_select);
 
+        void set_plasma_switch(switch_::Switch *plasma_switch);
+        void set_sleep_switch(switch_::Switch *sleep_switch);
+        void set_xfan_switch(switch_::Switch *plasma_switch);
+        void set_save_switch(switch_::Switch *plasma_switch);
+
         void set_current_temperature_sensor(sensor::Sensor *current_temperature_sensor);
 
         void setup() override;
@@ -114,6 +119,11 @@ class SinclairAC : public Component, public uart::UARTDevice, public climate::Cl
         select::Select *display_select_          = nullptr; /* Select for setting display mode */
         select::Select *display_unit_select_     = nullptr; /* Select for setting display temperature unit */
 
+        switch_::Switch *plasma_switch_          = nullptr; /* Switch for plasma */
+        switch_::Switch *sleep_switch_           = nullptr; /* Switch for sleep */
+        switch_::Switch *xfan_switch_            = nullptr; /* Switch for X-fan */
+        switch_::Switch *save_switch_            = nullptr; /* Switch for save */
+
         sensor::Sensor *current_temperature_sensor_ = nullptr; /* If user wants to replace reported temperature by an external sensor readout */
 
         std::string vertical_swing_state_;
@@ -121,6 +131,11 @@ class SinclairAC : public Component, public uart::UARTDevice, public climate::Cl
 
         std::string display_state_;
         std::string display_unit_state_;
+
+        bool plasma_state_;
+        bool sleep_state_;
+        bool xfan_state_;
+        bool save_state_;
 
         bool waiting_for_response_ = false;  // Set to true if we are waiting for a response
 
@@ -144,11 +159,21 @@ class SinclairAC : public Component, public uart::UARTDevice, public climate::Cl
         void update_display(const std::string &display);
         void update_display_unit(const std::string &display_unit);
 
+        void update_plasma(bool plasma);
+        void update_sleep(bool sleep);
+        void update_xfan(bool xfan);
+        void update_save(bool save);
+
         virtual void on_horizontal_swing_change(const std::string &swing) = 0;
         virtual void on_vertical_swing_change(const std::string &swing) = 0;
 
         virtual void on_display_change(const std::string &display) = 0;
         virtual void on_display_unit_change(const std::string &display_unit) = 0;
+
+        virtual void on_plasma_change(bool plasma) = 0;
+        virtual void on_sleep_change(bool sleep) = 0;
+        virtual void on_xfan_change(bool xfan) = 0;
+        virtual void on_save_change(bool save) = 0;
 
         climate::ClimateAction determine_action();
 
