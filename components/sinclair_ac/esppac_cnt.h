@@ -118,49 +118,49 @@ const std::vector<uint8_t> allowedPackets = {protocol::CMD_IN_UNIT_REPORT};
 
 class SinclairACCNT : public SinclairAC {
     public:
-    void control(const climate::ClimateCall &call) override;
+        void control(const climate::ClimateCall &call) override;
 
-    void on_horizontal_swing_change(const std::string &swing) override;
-    void on_vertical_swing_change(const std::string &swing) override;
+        void on_horizontal_swing_change(const std::string &swing) override;
+        void on_vertical_swing_change(const std::string &swing) override;
 
-    void on_display_change(const std::string &display) override;
-    void on_display_unit_change(const std::string &display_unit) override;
+        void on_display_change(const std::string &display) override;
+        void on_display_unit_change(const std::string &display_unit) override;
 
-    void on_plasma_change(bool plasma) override;
-    void on_sleep_change(bool sleep) override;
-    void on_xfan_change(bool xfan) override;
-    void on_save_change(bool save) override;
+        void on_plasma_change(bool plasma) override;
+        void on_sleep_change(bool sleep) override;
+        void on_xfan_change(bool xfan) override;
+        void on_save_change(bool save) override;
 
-    void setup() override;
-    void loop() override;
+        void setup() override;
+        void loop() override;
 
     protected:
-    ACState state_ = ACState::Initializing;  // Stores the internal state of the AC, used during initialization
+        ACState state_ = ACState::Initializing;  // Stores the internal state of the AC, used during initialization
 
-    //std::vector<uint8_t> data = std::vector<uint8_t>(255);  // Stores the data received from the AC
-    void handle_poll();
+        //std::vector<uint8_t> data = std::vector<uint8_t>(255);  // Stores the data received from the AC
+        void handle_poll();
 
-    void processUnitReport();
+        void processUnitReport();
 
-    void send_command(std::vector<uint8_t> command, CommandType type, uint8_t header);
-    void send_packet(const std::vector<uint8_t> &command, CommandType type);
+        void send_command(std::vector<uint8_t> command, CommandType type, uint8_t header);
+        void send_packet(const std::vector<uint8_t> &command, CommandType type);
 
-    bool verify_packet();
-    void handle_packet();
+        bool verify_packet();
+        void handle_packet();
 
-    climate::ClimateMode determine_mode();
-    std::string determine_fan_mode();
+        climate::ClimateMode determine_mode();
+        std::string determine_fan_mode();
 
-    std::string determine_vertical_swing();
-    std::string determine_horizontal_swing();
+        std::string determine_vertical_swing();
+        std::string determine_horizontal_swing();
 
-    std::string determine_display();
-    std::string determine_display_unit();
+        std::string determine_display();
+        std::string determine_display_unit();
 
-    bool determine_plasma();
-    bool determine_sleep();
-    bool determine_xfan();
-    bool determine_save();
+        bool determine_plasma();
+        bool determine_sleep();
+        bool determine_xfan();
+        bool determine_save();
 };
 
 }  // namespace CNT
