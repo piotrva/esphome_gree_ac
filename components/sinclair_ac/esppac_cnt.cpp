@@ -39,7 +39,24 @@ void SinclairACCNT::loop()
             Component::status_clear_error();
         }
 
-        handle_packet();
+        switch(this->update_)
+        {
+            case ACUpdate::NoUpdate:
+                handle_packet(); /* this will update state of components in HA as well as internal settings */
+                break;
+            case ACUpdate::UpdateStart:
+                this->update_ = ACUpdate::UpdateClear;
+                break;
+            case ACUpdate::UpdateClear:
+                this->update_ = ACUpdate::NoUpdate;
+                break;
+            default:
+                this->update_ = ACUpdate::NoUpdate;
+                break;
+        }
+
+        /* we will send a packet to the AC as a reponse to indicate changes */
+        send_packet();
     }
 
     /* if there are no packets for 5 seconds - mark module as not ready */
@@ -51,8 +68,6 @@ void SinclairACCNT::loop()
             Component::status_set_error();
         }
     }
-
-    handle_poll();  // Handle sending poll packets
 }
 
 /*
@@ -67,30 +82,8 @@ void SinclairACCNT::control(const climate::ClimateCall &call)
     if (call.get_mode().has_value())
     {
         ESP_LOGV(TAG, "Requested mode change");
-
-        // switch (*call.get_mode()) {
-        //     case climate::CLIMATE_MODE_COOL:
-        //         this->data[0] = 0x34;
-        //         break;
-        //     case climate::CLIMATE_MODE_HEAT:
-        //         this->data[0] = 0x44;
-        //         break;
-        //     case climate::CLIMATE_MODE_DRY:
-        //         this->data[0] = 0x24;
-        //         break;
-        //     case climate::CLIMATE_MODE_HEAT_COOL:
-        //         this->data[0] = 0x04;
-        //         break;
-        //     case climate::CLIMATE_MODE_FAN_ONLY:
-        //         this->data[0] = 0x64;
-        //         break;
-        //     case climate::CLIMATE_MODE_OFF:
-        //         this->data[0] = this->data[0] & 0xF0;  // Strip right nib to turn AC off
-        //         break;
-        //     default:
-        //         ESP_LOGV(TAG, "Unsupported mode requested");
-        //         break;
-        // }
+        this->update_ = ACUpdate::UpdateStart;
+        this->mode = *call.get_mode();
     }
 
     if (call.get_target_temperature().has_value())
@@ -148,52 +141,39 @@ void SinclairACCNT::control(const climate::ClimateCall &call)
         //         break;
         // }
     }
-
-    //send_command(this->data, CommandType::Normal, CTRL_HEADER);
 }
-
-/*
- * Send a command, attaching header, packet length and checksum
- */
-// void SinclairACCNT::send_command(std::vector<uint8_t> command, CommandType type, uint8_t header = CNT::CTRL_HEADER) {
-//     uint8_t length = command.size();
-//     command.insert(command.begin(), header);
-//     command.insert(command.begin() + 1, length);
-
-//     uint8_t checksum = 0;
-
-//     for (uint8_t i : command)
-//         checksum -= i;  // Add to checksum
-
-//     command.push_back(checksum);
-
-//     send_packet(command, type);  // Actually send the constructed packet
-// }
 
 /*
  * Send a raw packet, as is
  */
-void SinclairACCNT::send_packet(const std::vector<uint8_t> &packet, CommandType type)
+void SinclairACCNT::send_packet()
 {
-    this->last_packet_sent_ = millis();  // Save the time when we sent the last packet
+    std::vector<uint8_t> packet(protocol::SET_PACKET_LEN, 0);  /* Initialize packet contents */
+    
+    packet[protocol::SET_CONST_02_BYTE] = protocol::SET_CONST_02_VAL; /* Some always 0x02 byte... */
 
-    if (type != CommandType::Response)   // Don't wait for a response for responses
-        this->waiting_for_response_ = true;  // Mark that we are waiting for a response
+    /* Prepare the rest of the frame */
 
-    write_array(packet);       // Write to UART
-    log_packet(packet, true);  // Write to log
-}
+    /* Do the command, length */
+    packet.insert(packet.begin(), protocol::CMD_OUT_PARAMS_SET);
+    packet.insert(packet.begin(), protocol::SET_PACKET_LEN);
 
-/*
- * Loop handling
- */
+    /* Do checksum - sum of all bytes except sync and checksum itself% 0x100 
+       the module would be realized by the fact that we are using uint8_t*/
+    uint8_t checksum = 0;
+    for (uint8_t i = 0 ; i < packet.size() ; i++)
+    {
+        checksum += packet[i];
+    }
+    packet.push_back(checksum);
 
-void SinclairACCNT::handle_poll()
-{
-    // if (millis() - this->last_packet_sent_ > POLL_INTERVAL) {
-    //     ESP_LOGV(TAG, "Polling AC");
-    //     //send_command(CMD_POLL, CommandType::Normal, POLL_HEADER);
-    // }
+    /* Do SYNC bytes */
+    packet.insert(packet.begin(), protocol::SYNC);
+    packet.insert(packet.begin(), protocol::SYNC);
+
+    this->last_packet_sent_ = millis();  /* Save the time when we sent the last packet */
+    write_array(packet);                 /* Sent the packet by UART */
+    log_packet(packet, true);            /* Log uart for debug purposes */
 }
 
 /*
@@ -229,7 +209,7 @@ bool SinclairACCNT::verify_packet()
         return false;
     }
 
-    /* Check checksum - sum of al bytes except sync and checksum itself% 0x100 
+    /* Check checksum - sum of all bytes except sync and checksum itself% 0x100 
        the module would be realized by the fact that we are using uint8_t*/
     uint8_t checksum = 0;
     for (uint8_t i = 2 ; i < this->serialProcess_.data.size() - 1 ; i++)
@@ -526,8 +506,6 @@ void SinclairACCNT::on_vertical_swing_change(const std::string &swing)
     //     ESP_LOGW(TAG, "Unsupported vertical swing position received");
     //     return;
     // }
-
-    //send_command(this->data, CommandType::Normal, CTRL_HEADER);
 }
 
 void SinclairACCNT::on_horizontal_swing_change(const std::string &swing)
@@ -553,8 +531,6 @@ void SinclairACCNT::on_horizontal_swing_change(const std::string &swing)
     //     ESP_LOGW(TAG, "Unsupported horizontal swing position received");
     //     return;
     // }
-
-    //send_command(this->data, CommandType::Normal, CTRL_HEADER);
 }
 
 void SinclairACCNT::on_display_change(const std::string &display)

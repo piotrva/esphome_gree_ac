@@ -8,11 +8,19 @@ namespace sinclair_ac {
 namespace CNT {
 
 enum class ACState {
-    Initializing,  // Before first query response is receive
-    Ready,   // All done, ready to receive regular packets
+    Initializing, /* no data for quite a long time */
+    Ready,        /* AC talking to us */
+};
+
+enum class ACUpdate {
+    NoUpdate,    /* no parameters changed - normally process data, static flag set */
+    UpdateStart, /* start update with 0xAF and cleared static flag */
+    UpdateClear, /* update without 0xAF and cleared static flag */
 };
 
 namespace protocol {
+    /* SYNC */
+    static const uint8_t SYNC                = 0x7E;
     /* packet types */
     static const uint8_t CMD_IN_UNIT_REPORT  = 0x31;
     static const uint8_t CMD_OUT_PARAMS_SET  = 0x01;
@@ -111,6 +119,18 @@ namespace protocol {
 
     static const uint8_t REPORT_SAVE_BYTE      = 11;
     static const uint8_t REPORT_SAVE_MASK      = 0b01000000;
+
+    /* SET packet shares all the byte definition with REPORT */
+    static const uint8_t SET_PACKET_LEN        = 45;
+    
+    static const uint8_t SET_CONST_02_BYTE     = 39;
+    static const uint8_t SET_CONST_02_VAL      = 0x02;
+
+    static const uint8_t SET_AF_BYTE           = 3;
+    static const uint8_t SET_AF_VAL            = 0xAF;
+
+    static const uint8_t SET_NOCHANGE_BYTE     = 11;
+    static const uint8_t SET_NOCHANGE_MASK     = 0b00001000;
 }
 
 /* Define packets from AC that would be processed by software */
@@ -135,15 +155,12 @@ class SinclairACCNT : public SinclairAC {
         void loop() override;
 
     protected:
-        ACState state_ = ACState::Initializing;  // Stores the internal state of the AC, used during initialization
-
-        //std::vector<uint8_t> data = std::vector<uint8_t>(255);  // Stores the data received from the AC
-        void handle_poll();
+        ACState state_ = ACState::Initializing; /* Stores if the AC is responsive or not */
+        ACUpdate update_ = ACUpdate::NoUpdate;  /* Stores if we need tu send update to AC or no */
 
         void processUnitReport();
 
-        void send_command(std::vector<uint8_t> command, CommandType type, uint8_t header);
-        void send_packet(const std::vector<uint8_t> &command, CommandType type);
+        void send_packet();
 
         bool verify_packet();
         void handle_packet();

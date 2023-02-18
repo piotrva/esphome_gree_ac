@@ -75,9 +75,6 @@ namespace display_unit_options{
     const std::string DEGF = "F";
 }
 
-
-enum class CommandType { Normal, Response, Resend };
-
 typedef enum {
         STATE_WAIT_SYNC,
         STATE_RECIEVE,
@@ -136,8 +133,6 @@ class SinclairAC : public Component, public uart::UARTDevice, public climate::Cl
         bool sleep_state_;
         bool xfan_state_;
         bool save_state_;
-
-        bool waiting_for_response_ = false;  // Set to true if we are waiting for a response
 
         SerialProcess_t serialProcess_;
 
