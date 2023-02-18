@@ -210,7 +210,7 @@ void SinclairACCNT::send_packet()
     }
 
     /* TARGET TEMPERATURE --------------------------------------------------------------------------- */
-    uint8_t target_temperature = ((this->target_temperature - protocol::REPORT_TEMP_SET_OFF) << protocol::REPORT_TEMP_SET_POS);
+    uint8_t target_temperature = ((((uint8_t)this->target_temperature) - protocol::REPORT_TEMP_SET_OFF) << protocol::REPORT_TEMP_SET_POS);
     packet[protocol::REPORT_TEMP_SET_BYTE] |= (target_temperature & protocol::REPORT_TEMP_SET_MASK);
 
     /* FAN SPEED --------------------------------------------------------------------------- */
