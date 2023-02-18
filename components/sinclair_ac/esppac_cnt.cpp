@@ -388,17 +388,38 @@ void SinclairACCNT::send_packet()
     packet[protocol::REPORT_HSWING_BYTE] |= (mode_horizontal_swing << protocol::REPORT_HSWING_POS);
 
     /* DISPLAY --------------------------------------------------------------------------- */
+    /* TODO: Handle simillar to MODE as there are separate controls for on/off and mode in Sinclair */
 
     /* DISPLAY UNIT --------------------------------------------------------------------------- */
+    if (this->display_unit_state_ == display_unit_options::DEGF)
+    {
+        packet[protocol::REPORT_DISP_F_BYTE] |= protocol::REPORT_DISP_F_MASK;
+    }
 
     /* PLASMA --------------------------------------------------------------------------- */
+    if (this->plasma_state_)
+    {
+        packet[protocol::REPORT_PLASMA1_BYTE] |= protocol::REPORT_PLASMA1_MASK;
+        packet[protocol::REPORT_PLASMA2_BYTE] |= protocol::REPORT_PLASMA2_MASK;
+    }
 
     /* SLEEP --------------------------------------------------------------------------- */
+    if (this->sleep_state_)
+    {
+        packet[protocol::REPORT_SLEEP_BYTE] |= protocol::REPORT_SLEEP_MASK;
+    }
 
     /* XFAN --------------------------------------------------------------------------- */
+    if (this->xfan_state_)
+    {
+        packet[protocol::REPORT_XFAN_BYTE] |= protocol::REPORT_XFAN_MASK;
+    }
 
     /* SAVE --------------------------------------------------------------------------- */
-
+    if (this->save_state_)
+    {
+        packet[protocol::REPORT_SAVE_BYTE] |= protocol::REPORT_SAVE_MASK;
+    }
     
     /* Do the command, length */
     packet.insert(packet.begin(), protocol::CMD_OUT_PARAMS_SET);
