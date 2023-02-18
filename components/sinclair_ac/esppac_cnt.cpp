@@ -107,7 +107,7 @@ void SinclairACCNT::control(const climate::ClimateCall &call)
     if (call.get_swing_mode().has_value())
     {
         ESP_LOGV(TAG, "Requested swing mode change");
-
+        this->update_ = ACUpdate::UpdateStart;
         switch (*call.get_swing_mode()) {
             case climate::CLIMATE_SWING_BOTH:
                 this->vertical_swing_state_   =   vertical_swing_options::FULL;
@@ -743,24 +743,8 @@ void SinclairACCNT::on_vertical_swing_change(const std::string &swing)
 
     ESP_LOGD(TAG, "Setting vertical swing position");
 
-    // if (swing == "down")
-    //     this->data[4] = (this->data[4] & 0x0F) + 0x50;
-    // else if (swing == "down_center")
-    //     this->data[4] = (this->data[4] & 0x0F) + 0x40;
-    // else if (swing == "center")
-    //     this->data[4] = (this->data[4] & 0x0F) + 0x30;
-    // else if (swing == "up_center")
-    //     this->data[4] = (this->data[4] & 0x0F) + 0x20;
-    // else if (swing == "up")
-    //     this->data[4] = (this->data[4] & 0x0F) + 0x10;
-    // else if (swing == "swing")
-    //     this->data[4] = (this->data[4] & 0x0F) + 0xE0;
-    // else if (swing == "auto")
-    //     this->data[4] = (this->data[4] & 0x0F) + 0xF0;
-    // else {
-    //     ESP_LOGW(TAG, "Unsupported vertical swing position received");
-    //     return;
-    // }
+    this->update_ = ACUpdate::UpdateStart;
+    this->vertical_swing_state_ = swing;
 }
 
 void SinclairACCNT::on_horizontal_swing_change(const std::string &swing)
@@ -770,52 +754,74 @@ void SinclairACCNT::on_horizontal_swing_change(const std::string &swing)
 
     ESP_LOGD(TAG, "Setting horizontal swing position");
 
-    // if (swing == "left")
-    //     this->data[4] = (this->data[4] & 0xF0) + 0x09;
-    // else if (swing == "left_center")
-    //     this->data[4] = (this->data[4] & 0xF0) + 0x0A;
-    // else if (swing == "center")
-    //     this->data[4] = (this->data[4] & 0xF0) + 0x06;
-    // else if (swing == "right_center")
-    //     this->data[4] = (this->data[4] & 0xF0) + 0x0B;
-    // else if (swing == "right")
-    //     this->data[4] = (this->data[4] & 0xF0) + 0x0C;
-    // else if (swing == "auto")
-    //     this->data[4] = (this->data[4] & 0xF0) + 0x0D;
-    // else {
-    //     ESP_LOGW(TAG, "Unsupported horizontal swing position received");
-    //     return;
-    // }
+    this->update_ = ACUpdate::UpdateStart;
+    this->horizontal_swing_state_ = swing;
 }
 
 void SinclairACCNT::on_display_change(const std::string &display)
 {
+    if (this->state_ != ACState::Ready)
+        return;
+
     ESP_LOGD(TAG, "Setting display mode");
+
+    this->update_ = ACUpdate::UpdateStart;
+    this->display_state_ = display;
 }
 
 void SinclairACCNT::on_display_unit_change(const std::string &display_unit)
 {
+    if (this->state_ != ACState::Ready)
+        return;
+
     ESP_LOGD(TAG, "Setting display unit");
+
+    this->update_ = ACUpdate::UpdateStart;
+    this->display_unit_state_ = display_unit;
 }
 
 void SinclairACCNT::on_plasma_change(bool plasma)
 {
+    if (this->state_ != ACState::Ready)
+        return;
+
     ESP_LOGD(TAG, "Setting plasma");
+
+    this->update_ = ACUpdate::UpdateStart;
+    this->plasma_state_ = plasma;
 }
 
 void SinclairACCNT::on_sleep_change(bool sleep)
 {
+    if (this->state_ != ACState::Ready)
+        return;
+
     ESP_LOGD(TAG, "Setting sleep");
+
+    this->update_ = ACUpdate::UpdateStart;
+    this->sleep_state_ = sleep;
 }
 
 void SinclairACCNT::on_xfan_change(bool xfan)
 {
+    if (this->state_ != ACState::Ready)
+        return;
+
     ESP_LOGD(TAG, "Setting xfan");
+
+    this->update_ = ACUpdate::UpdateStart;
+    this->xfan_state_ = xfan;
 }
 
 void SinclairACCNT::on_save_change(bool save)
 {
+    if (this->state_ != ACState::Ready)
+        return;
+
     ESP_LOGD(TAG, "Setting save");
+
+    this->update_ = ACUpdate::UpdateStart;
+    this->save_state_ = save;
 }
 
 }  // namespace CNT
