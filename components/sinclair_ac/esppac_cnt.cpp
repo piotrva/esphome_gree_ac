@@ -288,9 +288,11 @@ void SinclairACCNT::handle_packet()
         this->serialProcess_.data.erase(this->serialProcess_.data.begin(), this->serialProcess_.data.begin() + 4); /* remove header */
         this->serialProcess_.data.pop_back();  /* remove checksum */
         /* now process the data */
-        this->processUnitReport();
-        this->publish_state();
-    } 
+        if (this->processUnitReport())
+        {
+            this->publish_state();
+        }
+    }
     else 
     {
         ESP_LOGD(TAG, "Received unknown packet");
@@ -300,21 +302,30 @@ void SinclairACCNT::handle_packet()
 /*
  * This decodes frame recieved from AC Unit
  */
-void SinclairACCNT::processUnitReport()
+bool SinclairACCNT::processUnitReport()
 {
-    this->mode = determine_mode();
-    this->custom_fan_mode = determine_fan_mode();
+    bool hasChanged = false;
+
+    climate::ClimateMode newMode = determine_mode();
+    if (this->mode != newMode) hasChanged = true;
+    this->mode = newMode;
+
+    std::string newFanMode = determine_fan_mode();
+    if (this->custom_fan_mode != newFanMode) hasChanged = true;
+    this->custom_fan_mode = newFanMode;
     
-    this->update_target_temperature(
-        (float)(((this->serialProcess_.data[protocol::REPORT_TEMP_SET_BYTE] & protocol::REPORT_TEMP_SET_MASK) >> protocol::REPORT_TEMP_SET_POS)
-        + protocol::REPORT_TEMP_SET_OFF));
+    float newTargetTemperature = (float)(((this->serialProcess_.data[protocol::REPORT_TEMP_SET_BYTE] & protocol::REPORT_TEMP_SET_MASK) >> protocol::REPORT_TEMP_SET_POS)
+        + protocol::REPORT_TEMP_SET_OFF);
+    if (this->target_temperature != newTargetTemperature) hasChanged = true;
+    this->update_target_temperature(newTargetTemperature);
     
     /* if there is no external sensor mapped to represent current temperature we will get data from AC unit */
     if (this->current_temperature_sensor_ == nullptr)
     {
-        this->update_current_temperature(
-            (float)(((this->serialProcess_.data[protocol::REPORT_TEMP_ACT_BYTE] & protocol::REPORT_TEMP_ACT_MASK) >> protocol::REPORT_TEMP_ACT_POS)
-            - protocol::REPORT_TEMP_ACT_OFF) / protocol::REPORT_TEMP_ACT_DIV);
+        float newCurrentTemperature = (float)(((this->serialProcess_.data[protocol::REPORT_TEMP_ACT_BYTE] & protocol::REPORT_TEMP_ACT_MASK) >> protocol::REPORT_TEMP_ACT_POS)
+            - protocol::REPORT_TEMP_ACT_OFF) / protocol::REPORT_TEMP_ACT_DIV;
+        if (this->current_temperature != newCurrentTemperature) hasChanged = true;
+        this->update_current_temperature(newCurrentTemperature);
     }
 
     std::string verticalSwing = determine_vertical_swing();
@@ -323,17 +334,21 @@ void SinclairACCNT::processUnitReport()
     this->update_swing_vertical(verticalSwing);
     this->update_swing_horizontal(horizontalSwing);
 
+    climate::ClimateSwingMode newSwingMode;
     /* update legacy swing mode to somehow represent actual state and support
        this setting without detailed settings done with additional switches */
     if (verticalSwing == vertical_swing_options::FULL && horizontalSwing == horizontal_swing_options::FULL)
-        this->swing_mode = climate::CLIMATE_SWING_BOTH;
+        newSwingMode = climate::CLIMATE_SWING_BOTH;
     else if (verticalSwing == vertical_swing_options::FULL)
-        this->swing_mode = climate::CLIMATE_SWING_VERTICAL;
+        newSwingMode = climate::CLIMATE_SWING_VERTICAL;
     else if (horizontalSwing == horizontal_swing_options::FULL)
-        this->swing_mode = climate::CLIMATE_SWING_HORIZONTAL;
+        newSwingMode = climate::CLIMATE_SWING_HORIZONTAL;
     else
-        this->swing_mode = climate::CLIMATE_SWING_OFF;
+        newSwingMode = climate::CLIMATE_SWING_OFF;
     
+    if (this->swing_mode != newSwingMode) hasChanged = true;
+    this->swing_mode = newSwingMode;
+
     this->update_display(determine_display());
     this->update_display_unit(determine_display_unit());
 
@@ -341,6 +356,8 @@ void SinclairACCNT::processUnitReport()
     this->update_sleep(determine_sleep());
     this->update_xfan(determine_xfan());
     this->update_save(determine_save());
+
+    return hasChanged;
 }
 
 climate::ClimateMode SinclairACCNT::determine_mode()
