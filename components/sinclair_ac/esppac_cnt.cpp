@@ -95,6 +95,14 @@ void SinclairACCNT::control(const climate::ClimateCall &call)
         ESP_LOGV(TAG, "Requested target teperature change");
         this->update_ = ACUpdate::UpdateStart;
         this->target_temperature = *call.get_target_temperature();
+        if (this->target_temperature < MIN_TEMPERATURE)
+        {
+            this->target_temperature = MIN_TEMPERATURE;
+        }
+        else if (this->target_temperature > MAX_TEMPERATURE)
+        {
+            this->target_temperature = MAX_TEMPERATURE;
+        }
     }
 
     if (call.get_custom_fan_mode().has_value())
@@ -162,7 +170,7 @@ void SinclairACCNT::send_packet()
             break;
     }
 
-    /* MODE and POWER */
+    /* MODE and POWER --------------------------------------------------------------------------- */
     uint8_t mode = protocol::REPORT_MODE_AUTO;
     bool power = false;
     switch (this->mode)
@@ -201,7 +209,11 @@ void SinclairACCNT::send_packet()
         packet[protocol::REPORT_PWR_BYTE] |= protocol::REPORT_PWR_MASK;
     }
 
-    /* FAN SPEED */
+    /* TARGET TEMPERATURE --------------------------------------------------------------------------- */
+    uint8_t target_temperature = ((this->target_temperature - protocol::REPORT_TEMP_SET_OFF) << protocol::REPORT_TEMP_SET_POS);
+    packet[protocol::REPORT_TEMP_SET_BYTE] |= (target_temperature & protocol::REPORT_TEMP_SET_MASK);
+
+    /* FAN SPEED --------------------------------------------------------------------------- */
     /* below will default to AUTO */
     uint8_t fanSpeed1 = 0;
     uint8_t fanSpeed2 = 0;
@@ -283,7 +295,7 @@ void SinclairACCNT::send_packet()
         packet[protocol::REPORT_FAN_QUIET_BYTE] |= protocol::REPORT_FAN_QUIET_MASK;
     }
 
-    /* vertical swing */
+    /* VERTICAL SWING --------------------------------------------------------------------------- */
     uint8_t mode_vertical_swing = protocol::REPORT_VSWING_OFF;
     if (this->vertical_swing_state_ == vertical_swing_options::OFF)
     {
@@ -339,7 +351,7 @@ void SinclairACCNT::send_packet()
     }
     packet[protocol::REPORT_VSWING_BYTE] |= (mode_vertical_swing << protocol::REPORT_VSWING_POS);
 
-    /* horizontal swing */
+    /* HORIZONTAL SWING --------------------------------------------------------------------------- */
     uint8_t mode_horizontal_swing = protocol::REPORT_HSWING_OFF;
     if (this->horizontal_swing_state_ == horizontal_swing_options::OFF)
     {
@@ -374,6 +386,19 @@ void SinclairACCNT::send_packet()
         mode_horizontal_swing = protocol::REPORT_HSWING_OFF;
     }
     packet[protocol::REPORT_HSWING_BYTE] |= (mode_horizontal_swing << protocol::REPORT_HSWING_POS);
+
+    /* DISPLAY --------------------------------------------------------------------------- */
+
+    /* DISPLAY UNIT --------------------------------------------------------------------------- */
+
+    /* PLASMA --------------------------------------------------------------------------- */
+
+    /* SLEEP --------------------------------------------------------------------------- */
+
+    /* XFAN --------------------------------------------------------------------------- */
+
+    /* SAVE --------------------------------------------------------------------------- */
+
     
     /* Do the command, length */
     packet.insert(packet.begin(), protocol::CMD_OUT_PARAMS_SET);
