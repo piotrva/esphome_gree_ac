@@ -152,7 +152,58 @@ void SinclairACCNT::send_packet()
     packet[protocol::SET_CONST_02_BYTE] = protocol::SET_CONST_02_VAL; /* Some always 0x02 byte... */
 
     /* Prepare the rest of the frame */
+    /* this handles tricky part of 0xAF value and flag marking that WiFi does not apply any changes */
+    switch(this->update_)
+    {
+        default:
+        case ACUpdate::NoUpdate:
+            packet[protocol::SET_NOCHANGE_BYTE] |= protocol::SET_NOCHANGE_MASK;
+            break;
+        case ACUpdate::UpdateStart:
+            packet[protocol::SET_AF_BYTE] = protocol::SET_AF_VAL;
+            break;
+        case ACUpdate::UpdateClear:
+            break;
+    }
 
+    uint8_t mode = protocol::REPORT_MODE_AUTO;
+    bool power = false;
+    switch (this->mode)
+    {
+        case climate::CLIMATE_MODE_AUTO:
+            mode = protocol::REPORT_MODE_AUTO;
+            power = true;
+            break;
+        case climate::CLIMATE_MODE_COOL:
+            mode = protocol::REPORT_MODE_COOL;
+            power = true;
+            break;
+        case climate::CLIMATE_MODE_DRY:
+            mode = protocol::REPORT_MODE_DRY;
+            power = true;
+            break;
+        case climate::CLIMATE_MODE_FAN_ONLY:
+            mode = protocol::REPORT_MODE_FAN;
+            power = true;
+            break;
+        case climate::CLIMATE_MODE_HEAT:
+            mode = protocol::REPORT_MODE_HEAT;
+            power = true;
+            break;
+        default:
+        case climate::CLIMATE_MODE_OFF:
+            /* TODO: we need to remember what AC was telling us... */
+            mode = protocol::REPORT_MODE_COOL;
+            power = false;
+            break;
+    }
+
+    packet[protocol::REPORT_MODE_BYTE] |= (mode << protocol::REPORT_MODE_POS);
+    if (power)
+    {
+        packet[protocol::REPORT_PWR_BYTE] |= protocol::REPORT_PWR_MASK;
+    }
+    
     /* Do the command, length */
     packet.insert(packet.begin(), protocol::CMD_OUT_PARAMS_SET);
     packet.insert(packet.begin(), protocol::SET_PACKET_LEN + 2); /* Add 2 bytes as we added a command and will add checksum */
