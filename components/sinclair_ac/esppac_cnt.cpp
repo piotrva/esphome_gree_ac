@@ -79,8 +79,9 @@ void SinclairACCNT::loop()
 
 void SinclairACCNT::control(const climate::ClimateCall &call)
 {
-    if (this->state_ != ACState::Ready)
-        return;
+    /* TODO: uncomment below - debug only! */
+    /*if (this->state_ != ACState::Ready)
+        return;*/
 
     if (call.get_mode().has_value())
     {
