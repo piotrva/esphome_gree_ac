@@ -38,10 +38,17 @@ void SinclairACCNT::loop()
             Component::status_clear_error();
         }
 
+        if (this->update_ == ACUpdate::NoUpdate)
+        {
+            handle_packet(); /* this will update state of components in HA as well as internal settings */
+        }
+
+        /* we will send a packet to the AC as a reponse to indicate changes */
+        send_packet();
+
         switch(this->update_)
         {
             case ACUpdate::NoUpdate:
-                handle_packet(); /* this will update state of components in HA as well as internal settings */
                 break;
             case ACUpdate::UpdateStart:
                 this->update_ = ACUpdate::UpdateClear;
@@ -53,9 +60,6 @@ void SinclairACCNT::loop()
                 this->update_ = ACUpdate::NoUpdate;
                 break;
         }
-
-        /* we will send a packet to the AC as a reponse to indicate changes */
-        send_packet();
     }
 
     /* if there are no packets for 5 seconds - mark module as not ready */
