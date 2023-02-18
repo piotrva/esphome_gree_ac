@@ -155,7 +155,7 @@ void SinclairACCNT::send_packet()
 
     /* Do the command, length */
     packet.insert(packet.begin(), protocol::CMD_OUT_PARAMS_SET);
-    packet.insert(packet.begin(), protocol::SET_PACKET_LEN);
+    packet.insert(packet.begin(), protocol::SET_PACKET_LEN + 2); /* Add 2 bytes as we added a command and will add checksum */
 
     /* Do checksum - sum of all bytes except sync and checksum itself% 0x100 
        the module would be realized by the fact that we are using uint8_t*/
