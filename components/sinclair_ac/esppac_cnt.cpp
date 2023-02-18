@@ -627,7 +627,7 @@ void SinclairACCNT::on_sleep_change(bool sleep)
 
 void SinclairACCNT::on_xfan_change(bool xfan)
 {
-    ESP_LOGD(TAG, "Setting zfan");
+    ESP_LOGD(TAG, "Setting xfan");
 }
 
 void SinclairACCNT::on_save_change(bool save)
