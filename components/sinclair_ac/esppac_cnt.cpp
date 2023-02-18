@@ -65,7 +65,8 @@ void SinclairACCNT::loop()
     /* if there are no packets for 5 seconds - mark module as not ready */
     if (millis() - this->last_packet_received_ > 5000UL)
     {
-        if (this->state_ != ACState::Initializing)
+        /* TODO: remove && false - added to debug easier */
+        if (this->state_ != ACState::Initializing && false)
         {
             this->state_ = ACState::Initializing;
             Component::status_set_error();
@@ -79,9 +80,8 @@ void SinclairACCNT::loop()
 
 void SinclairACCNT::control(const climate::ClimateCall &call)
 {
-    /* TODO: uncomment below - debug only! */
-    /*if (this->state_ != ACState::Ready)
-        return;*/
+    if (this->state_ != ACState::Ready)
+        return;
 
     if (call.get_mode().has_value())
     {
@@ -92,58 +92,49 @@ void SinclairACCNT::control(const climate::ClimateCall &call)
 
     if (call.get_target_temperature().has_value())
     {
-        //this->data[1] = *call.get_target_temperature() / TEMPERATURE_STEP;
+        ESP_LOGV(TAG, "Requested target teperature change");
+        this->update_ = ACUpdate::UpdateStart;
+        this->target_temperature = *call.get_target_temperature();
     }
 
     if (call.get_custom_fan_mode().has_value())
     {
         ESP_LOGV(TAG, "Requested fan mode change");
-
-        if(this->custom_preset != "Normal")
-        {
-            ESP_LOGV(TAG, "Resetting preset");
-            //this->data[5] = (this->data[5] & 0xF0);  // Clear right nib for normal mode
-        }
-
-        std::string fanMode = *call.get_custom_fan_mode();
-
-        // if (fanMode == "Automatic")
-        //     this->data[3] = 0xA0;
-        // else if (fanMode == "1")
-        //     this->data[3] = 0x30;
-        // else if (fanMode == "2")
-        //     this->data[3] = 0x40;
-        // else if (fanMode == "3")
-        //     this->data[3] = 0x50;
-        // else if (fanMode == "4")
-        //     this->data[3] = 0x60;
-        // else if (fanMode == "5")
-        //     this->data[3] = 0x70;
-        // else
-        //     ESP_LOGV(TAG, "Unsupported fan mode requested");
+        this->update_ = ACUpdate::UpdateStart;
+        this->custom_fan_mode = *call.get_custom_fan_mode();
     }
 
     if (call.get_swing_mode().has_value())
     {
         ESP_LOGV(TAG, "Requested swing mode change");
 
-        // switch (*call.get_swing_mode()) {
-        //     case climate::CLIMATE_SWING_BOTH:
-        //         this->data[4] = 0xFD;
-        //         break;
-        //     case climate::CLIMATE_SWING_OFF:
-        //         this->data[4] = 0x36;  // Reset both to center
-        //         break;
-        //     case climate::CLIMATE_SWING_VERTICAL:
-        //         this->data[4] = 0xF6;  // Swing vertical, horizontal center
-        //         break;
-        //     case climate::CLIMATE_SWING_HORIZONTAL:
-        //         this->data[4] = 0x3D;  // Swing horizontal, vertical center
-        //         break;
-        //     default:
-        //         ESP_LOGV(TAG, "Unsupported swing mode requested");
-        //         break;
-        // }
+        switch (*call.get_swing_mode()) {
+            case climate::CLIMATE_SWING_BOTH:
+                this->vertical_swing_state_   =   vertical_swing_options::FULL;
+                this->horizontal_swing_state_ = horizontal_swing_options::FULL;
+                break;
+            case climate::CLIMATE_SWING_OFF:
+                /* both center */
+                this->vertical_swing_state_   =   vertical_swing_options::CMID;
+                this->horizontal_swing_state_ = horizontal_swing_options::CMID;
+                break;
+            case climate::CLIMATE_SWING_VERTICAL:
+                /* vertical full, horizontal center */
+                this->vertical_swing_state_   =   vertical_swing_options::FULL;
+                this->horizontal_swing_state_ = horizontal_swing_options::CMID;
+                break;
+            case climate::CLIMATE_SWING_HORIZONTAL:
+                /* horizontal full, vertical center */
+                this->vertical_swing_state_   =   vertical_swing_options::CMID;
+                this->horizontal_swing_state_ = horizontal_swing_options::FULL;
+                break;
+            default:
+                ESP_LOGV(TAG, "Unsupported swing mode requested");
+                /* both center */
+                this->vertical_swing_state_   =   vertical_swing_options::CMID;
+                this->horizontal_swing_state_ = horizontal_swing_options::CMID;
+                break;
+        }
     }
 }
 
@@ -171,6 +162,7 @@ void SinclairACCNT::send_packet()
             break;
     }
 
+    /* MODE and POWER */
     uint8_t mode = protocol::REPORT_MODE_AUTO;
     bool power = false;
     switch (this->mode)
@@ -197,8 +189,8 @@ void SinclairACCNT::send_packet()
             break;
         default:
         case climate::CLIMATE_MODE_OFF:
-            /* TODO: we need to remember what AC was telling us... */
-            mode = protocol::REPORT_MODE_COOL;
+            /* In case of MODE_OFF we will not alter the last mode setting recieved from AC, see determine_mode() */
+            mode = this->mode_internal_;
             power = false;
             break;
     }
@@ -208,6 +200,180 @@ void SinclairACCNT::send_packet()
     {
         packet[protocol::REPORT_PWR_BYTE] |= protocol::REPORT_PWR_MASK;
     }
+
+    /* FAN SPEED */
+    /* below will default to AUTO */
+    uint8_t fanSpeed1 = 0;
+    uint8_t fanSpeed2 = 0;
+    bool    fanQuiet  = false;
+    bool    fanTurbo  = false;
+
+    if (this->custom_fan_mode == fan_modes::FAN_AUTO)
+    {
+        fanSpeed1 = 0;
+        fanSpeed2 = 0;
+        fanQuiet  = false;
+        fanTurbo  = false;
+    }
+    else if (this->custom_fan_mode == fan_modes::FAN_LOW)
+    {
+        fanSpeed1 = 1;
+        fanSpeed2 = 1;
+        fanQuiet  = false;
+        fanTurbo  = false;
+    }
+    else if (this->custom_fan_mode == fan_modes::FAN_QUIET)
+    {
+        fanSpeed1 = 1;
+        fanSpeed2 = 1;
+        fanQuiet  = true;
+        fanTurbo  = false;
+    }
+    else if (this->custom_fan_mode == fan_modes::FAN_MEDL)
+    {
+        fanSpeed1 = 2;
+        fanSpeed2 = 2;
+        fanQuiet  = false;
+        fanTurbo  = false;
+    }
+    else if (this->custom_fan_mode == fan_modes::FAN_MED)
+    {
+        fanSpeed1 = 3;
+        fanSpeed2 = 2;
+        fanQuiet  = false;
+        fanTurbo  = false;
+    }
+    else if (this->custom_fan_mode == fan_modes::FAN_MEDH)
+    {
+        fanSpeed1 = 4;
+        fanSpeed2 = 3;
+        fanQuiet  = false;
+        fanTurbo  = false;
+    }
+    else if (this->custom_fan_mode == fan_modes::FAN_HIGH)
+    {
+        fanSpeed1 = 5;
+        fanSpeed2 = 3;
+        fanQuiet  = false;
+        fanTurbo  = false;
+    }
+    else if (this->custom_fan_mode == fan_modes::FAN_TURBO)
+    {
+        fanSpeed1 = 5;
+        fanSpeed2 = 3;
+        fanQuiet  = false;
+        fanTurbo  = true;
+    }
+    else
+    {
+        fanSpeed1 = 0;
+        fanSpeed2 = 0;
+        fanQuiet  = false;
+        fanTurbo  = false;
+    }
+
+    packet[protocol::REPORT_FAN_SPD1_BYTE] |= (fanSpeed1 << protocol::REPORT_FAN_SPD1_POS);
+    packet[protocol::REPORT_FAN_SPD2_BYTE] |= (fanSpeed2 << protocol::REPORT_FAN_SPD2_POS);
+    if (fanTurbo)
+    {
+        packet[protocol::REPORT_FAN_TURBO_BYTE] |= protocol::REPORT_FAN_TURBO_MASK;
+    }
+    if (fanQuiet)
+    {
+        packet[protocol::REPORT_FAN_QUIET_BYTE] |= protocol::REPORT_FAN_QUIET_MASK;
+    }
+
+    /* vertical swing */
+    uint8_t mode_vertical_swing = protocol::REPORT_VSWING_OFF;
+    if (this->vertical_swing_state_ == vertical_swing_options::OFF)
+    {
+        mode_vertical_swing = protocol::REPORT_VSWING_OFF;
+    }
+    else if (this->vertical_swing_state_ == vertical_swing_options::FULL)
+    {
+        mode_vertical_swing = protocol::REPORT_VSWING_FULL;
+    }
+    else if (this->vertical_swing_state_ == vertical_swing_options::DOWN)
+    {
+        mode_vertical_swing = protocol::REPORT_VSWING_DOWN;
+    }
+    else if (this->vertical_swing_state_ == vertical_swing_options::MIDD)
+    {
+        mode_vertical_swing = protocol::REPORT_VSWING_MIDD;
+    }
+    else if (this->vertical_swing_state_ == vertical_swing_options::MID)
+    {
+        mode_vertical_swing = protocol::REPORT_VSWING_MID;
+    }
+    else if (this->vertical_swing_state_ == vertical_swing_options::MIDU)
+    {
+        mode_vertical_swing = protocol::REPORT_VSWING_MIDU;
+    }
+    else if (this->vertical_swing_state_ == vertical_swing_options::UP)
+    {
+        mode_vertical_swing = protocol::REPORT_VSWING_UP;
+    }
+    else if (this->vertical_swing_state_ == vertical_swing_options::CDOWN)
+    {
+        mode_vertical_swing = protocol::REPORT_VSWING_CDOWN;
+    }
+    else if (this->vertical_swing_state_ == vertical_swing_options::CMIDD)
+    {
+        mode_vertical_swing = protocol::REPORT_VSWING_CMIDD;
+    }
+    else if (this->vertical_swing_state_ == vertical_swing_options::CMID)
+    {
+        mode_vertical_swing = protocol::REPORT_VSWING_CMID;
+    }
+    else if (this->vertical_swing_state_ == vertical_swing_options::CMIDU)
+    {
+        mode_vertical_swing = protocol::REPORT_VSWING_CMIDU;
+    }
+    else if (this->vertical_swing_state_ == vertical_swing_options::CUP)
+    {
+        mode_vertical_swing = protocol::REPORT_VSWING_CUP;
+    }
+    else
+    {
+        mode_vertical_swing = protocol::REPORT_VSWING_OFF;
+    }
+    packet[protocol::REPORT_VSWING_BYTE] |= (mode_vertical_swing << protocol::REPORT_VSWING_POS);
+
+    /* horizontal swing */
+    uint8_t mode_horizontal_swing = protocol::REPORT_HSWING_OFF;
+    if (this->horizontal_swing_state_ == horizontal_swing_options::OFF)
+    {
+        mode_horizontal_swing = protocol::REPORT_HSWING_OFF;
+    }
+    else if (this->horizontal_swing_state_ == horizontal_swing_options::FULL)
+    {
+        mode_horizontal_swing = protocol::REPORT_HSWING_FULL;
+    }
+    else if (this->horizontal_swing_state_ == horizontal_swing_options::CLEFT)
+    {
+        mode_horizontal_swing = protocol::REPORT_HSWING_CLEFT;
+    }
+    else if (this->horizontal_swing_state_ == horizontal_swing_options::CMIDL)
+    {
+        mode_horizontal_swing = protocol::REPORT_HSWING_CMIDL;
+    }
+    else if (this->horizontal_swing_state_ == horizontal_swing_options::CMID)
+    {
+        mode_horizontal_swing = protocol::REPORT_HSWING_CMID;
+    }
+    else if (this->horizontal_swing_state_ == horizontal_swing_options::CMIDR)
+    {
+        mode_horizontal_swing = protocol::REPORT_HSWING_CMIDR;
+    }
+    else if (this->horizontal_swing_state_ == horizontal_swing_options::CRIGHT)
+    {
+        mode_horizontal_swing = protocol::REPORT_HSWING_CRIGHT;
+    }
+    else
+    {
+        mode_horizontal_swing = protocol::REPORT_HSWING_OFF;
+    }
+    packet[protocol::REPORT_HSWING_BYTE] |= (mode_horizontal_swing << protocol::REPORT_HSWING_POS);
     
     /* Do the command, length */
     packet.insert(packet.begin(), protocol::CMD_OUT_PARAMS_SET);
@@ -363,27 +529,44 @@ bool SinclairACCNT::processUnitReport()
 climate::ClimateMode SinclairACCNT::determine_mode()
 {
     uint8_t mode = (this->serialProcess_.data[protocol::REPORT_MODE_BYTE] & protocol::REPORT_MODE_MASK) >> protocol::REPORT_MODE_POS;
-    /* check unit power flag - if unit is off - no need to process mode */
-    if (!(this->serialProcess_.data[protocol::REPORT_PWR_BYTE] & protocol::REPORT_PWR_MASK))
-    {
-        return climate::CLIMATE_MODE_OFF;
-    }
+
+    /* as mode presented by climate component incorporates both power and mode we will store this separately for Sinclair
+       in _internal_ fields */
+    /* check unit power flag */
+    this->power_internal_ = (this->serialProcess_.data[protocol::REPORT_PWR_BYTE] & protocol::REPORT_PWR_MASK) != 0;
+
     /* check unit mode */
     switch (mode)
     {
         case protocol::REPORT_MODE_AUTO:
-            return climate::CLIMATE_MODE_AUTO;
+            this->mode_internal_ = climate::CLIMATE_MODE_AUTO;
+            break;
         case protocol::REPORT_MODE_COOL:
-            return climate::CLIMATE_MODE_COOL;
+            this->mode_internal_ = climate::CLIMATE_MODE_COOL;
+            break;
         case protocol::REPORT_MODE_DRY:
-            return climate::CLIMATE_MODE_DRY;
+            this->mode_internal_ = climate::CLIMATE_MODE_DRY;
+            break;
         case protocol::REPORT_MODE_FAN:
-            return climate::CLIMATE_MODE_FAN_ONLY;
+            this->mode_internal_ = climate::CLIMATE_MODE_FAN_ONLY;
+            break;
         case protocol::REPORT_MODE_HEAT:
-            return climate::CLIMATE_MODE_HEAT;
+            this->mode_internal_ = climate::CLIMATE_MODE_HEAT;
+            break;
         default:
             ESP_LOGW(TAG, "Received unknown climate mode");
-            return climate::CLIMATE_MODE_OFF;
+            this->mode_internal_ = climate::CLIMATE_MODE_OFF;
+            break;
+    }
+
+    /* if unit is powered on - return the mode, otherwise return CLIMATE_MODE_OFF */
+    if (this->power_internal_)
+    {
+        return this->mode_internal_;
+    }
+    else
+    {
+        return climate::CLIMATE_MODE_OFF;
     }
 }
 

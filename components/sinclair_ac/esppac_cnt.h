@@ -158,6 +158,9 @@ class SinclairACCNT : public SinclairAC {
         ACState state_ = ACState::Initializing; /* Stores if the AC is responsive or not */
         ACUpdate update_ = ACUpdate::NoUpdate;  /* Stores if we need tu send update to AC or no */
 
+        climate::ClimateMode mode_internal_;
+        bool power_internal_;
+
         bool processUnitReport();
 
         void send_packet();
