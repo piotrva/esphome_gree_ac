@@ -29,7 +29,6 @@ void SinclairACCNT::loop()
         if (!verify_packet())  // Verify length, header, counter and checksum
             return;
 
-        this->waiting_for_response_ = false;
         this->last_packet_received_ = millis();  /* Set the time at which we received our last packet */
 
         /* A valid recieved packet of accepted type marks module as being ready */
