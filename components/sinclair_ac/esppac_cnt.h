@@ -161,6 +161,9 @@ class SinclairACCNT : public SinclairAC {
         climate::ClimateMode mode_internal_;
         bool power_internal_;
 
+        std::string display_mode_internal_;
+        bool display_power_internal_;
+
         bool processUnitReport();
 
         void send_packet();

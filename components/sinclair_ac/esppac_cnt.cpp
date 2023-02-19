@@ -388,7 +388,33 @@ void SinclairACCNT::send_packet()
     packet[protocol::REPORT_HSWING_BYTE] |= (mode_horizontal_swing << protocol::REPORT_HSWING_POS);
 
     /* DISPLAY --------------------------------------------------------------------------- */
-    /* TODO: Handle simillar to MODE as there are separate controls for on/off and mode in Sinclair */
+    if (this->display_power_internal_)
+    {
+        packet[protocol::REPORT_DISP_ON_BYTE] |= protocol::REPORT_DISP_ON_MASK;
+    }
+
+    uint8_t display_mode = protocol::REPORT_DISP_MODE_AUTO;
+    if (this->display_mode_internal_ == display_options::AUTO)
+    {
+        display_mode = protocol::REPORT_DISP_MODE_AUTO;
+    }
+    else if (this->display_mode_internal_ == display_options::SET)
+    {
+        display_mode = protocol::REPORT_DISP_MODE_SET;
+    }
+    else if (this->display_mode_internal_ == display_options::ACT)
+    {
+        display_mode = protocol::REPORT_DISP_MODE_ACT;
+    }
+    else if (this->display_mode_internal_ == display_options::OUT)
+    {
+        display_mode = protocol::REPORT_DISP_MODE_OUT;
+    }
+    else
+    {
+        display_mode = protocol::REPORT_DISP_MODE_AUTO;
+    }
+    packet[protocol::REPORT_DISP_MODE_BYTE] |= (display_mode << protocol::REPORT_DISP_MODE_POS);
 
     /* DISPLAY UNIT --------------------------------------------------------------------------- */
     if (this->display_unit_state_ == display_unit_options::DEGF)
@@ -694,7 +720,7 @@ std::string SinclairACCNT::determine_vertical_swing()
             return vertical_swing_options::CUP;
         default:
             ESP_LOGW(TAG, "Received unknown vertical swing mode");
-            return "Unknown";
+            return vertical_swing_options::OFF;;
     }
 }
 
@@ -719,7 +745,7 @@ std::string SinclairACCNT::determine_horizontal_swing()
             return horizontal_swing_options::CRIGHT;
         default:
             ESP_LOGW(TAG, "Received unknown horizontal swing mode");
-            return "Unknown";
+            return horizontal_swing_options::OFF;
     }
 }
 
@@ -727,23 +753,34 @@ std::string SinclairACCNT::determine_display()
 {
     uint8_t mode = (this->serialProcess_.data[protocol::REPORT_DISP_MODE_BYTE] & protocol::REPORT_DISP_MODE_MASK) >> protocol::REPORT_DISP_MODE_POS;
 
-    if (!(this->serialProcess_.data[protocol::REPORT_DISP_ON_BYTE] & protocol::REPORT_DISP_ON_MASK))
-    {
-        return display_options::OFF;
-    }
+    this->display_power_internal_ = (this->serialProcess_.data[protocol::REPORT_DISP_ON_BYTE] & protocol::REPORT_DISP_ON_MASK);
 
     switch (mode) {
         case protocol::REPORT_DISP_MODE_AUTO:
-            return display_options::AUTO;
+            this->display_mode_internal_ = display_options::AUTO;
+            break;
         case protocol::REPORT_DISP_MODE_SET:
-            return display_options::SET;
+            this->display_mode_internal_ = display_options::SET;
+            break;
         case protocol::REPORT_DISP_MODE_ACT:
-            return display_options::ACT;
+            this->display_mode_internal_ = display_options::ACT;
+            break;
         case protocol::REPORT_DISP_MODE_OUT:
-            return display_options::OUT;
+            this->display_mode_internal_ = display_options::OUT;
+            break;
         default:
             ESP_LOGW(TAG, "Received unknown display mode");
-            return "Unknown";
+            this->display_mode_internal_ = display_options::AUTO;
+            break;
+    }
+
+    if (this->display_power_internal)
+    {
+        return this->display_mode_internal_;
+    }
+    else
+    {
+        return display_options::OFF;
     }
 }
 
