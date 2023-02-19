@@ -403,27 +403,27 @@ void SinclairACCNT::send_packet()
 
     /* DISPLAY --------------------------------------------------------------------------- */
     uint8_t display_mode = protocol::REPORT_DISP_MODE_AUTO;
-    if (this->display_mode_ == display_options::AUTO)
+    if (this->display_state_ == display_options::AUTO)
     {
         display_mode = protocol::REPORT_DISP_MODE_AUTO;
         this->display_power_internal_ = true;
     }
-    else if (this->display_mode_ == display_options::SET)
+    else if (this->display_state_ == display_options::SET)
     {
         display_mode = protocol::REPORT_DISP_MODE_SET;
         this->display_power_internal_ = true;
     }
-    else if (this->display_mode_ == display_options::ACT)
+    else if (this->display_state_ == display_options::ACT)
     {
         display_mode = protocol::REPORT_DISP_MODE_ACT;
         this->display_power_internal_ = true;
     }
-    else if (this->display_mode_ == display_options::OUT)
+    else if (this->display_state_ == display_options::OUT)
     {
         display_mode = protocol::REPORT_DISP_MODE_OUT;
         this->display_power_internal_ = true;
     }
-    else if (this->display_mode_ == display_options::OFF)
+    else if (this->display_state_ == display_options::OFF)
     {
         /* we do not want to alter display setting - only turn it off */
         this->display_power_internal_ = false;
