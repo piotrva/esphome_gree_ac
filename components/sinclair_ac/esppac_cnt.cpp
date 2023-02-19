@@ -24,10 +24,15 @@ void SinclairACCNT::loop()
     {
         /* do not forget to order for restart of the recieve state machine */
         this->serialProcess_.state = STATE_RESTART;
+        /* mark that we have recieved a response */
+        this->wait_response_ = false;
+        /* log for ESPHome debug */
         log_packet(this->serialProcess_.data);
 
-        if (!verify_packet())  // Verify length, header, counter and checksum
+        if (!verify_packet())  /* Verify length, header, counter and checksum */
+        {
             return;
+        }
 
         this->last_packet_received_ = millis();  /* Set the time at which we received our last packet */
 
@@ -36,15 +41,13 @@ void SinclairACCNT::loop()
         {
             this->state_ = ACState::Ready;  
             Component::status_clear_error();
+            this->last_packet_sent_ = millis();
         }
 
         if (this->update_ == ACUpdate::NoUpdate)
         {
             handle_packet(); /* this will update state of components in HA as well as internal settings */
         }
-
-        /* we will send a packet to the AC as a reponse to indicate changes */
-        send_packet();
 
         switch(this->update_)
         {
@@ -62,11 +65,13 @@ void SinclairACCNT::loop()
         }
     }
 
+    /* we will send a packet to the AC as a reponse to indicate changes */
+    send_packet();
+
     /* if there are no packets for 5 seconds - mark module as not ready */
-    if (millis() - this->last_packet_received_ > 5000UL)
+    if (millis() - this->last_packet_received_ >= protocol::TIME_TIMEOUT_INACTIVE_MS)
     {
-        /* TODO: remove && false - added to debug easier */
-        if (this->state_ != ACState::Initializing && false)
+        if (this->state_ != ACState::Initializing)
         {
             this->state_ = ACState::Initializing;
             Component::status_set_error();
@@ -152,6 +157,12 @@ void SinclairACCNT::control(const climate::ClimateCall &call)
 void SinclairACCNT::send_packet()
 {
     std::vector<uint8_t> packet(protocol::SET_PACKET_LEN, 0);  /* Initialize packet contents */
+
+    if (this->wait_response_ == true && (millis() - this->last_packet_sent_) < protocol::TIME_REFRESH_PERIOD_MS)
+    {
+        /* do net send packet too often or when we are waiting for report to come */
+        return;
+    }
     
     packet[protocol::SET_CONST_02_BYTE] = protocol::SET_CONST_02_VAL; /* Some always 0x02 byte... */
     packet[protocol::SET_CONST_BIT_BYTE] = protocol::SET_CONST_BIT_MASK; /* Some always true bit */
@@ -483,6 +494,7 @@ void SinclairACCNT::send_packet()
     packet.insert(packet.begin(), protocol::SYNC);
 
     this->last_packet_sent_ = millis();  /* Save the time when we sent the last packet */
+    this->wait_response_ = true;
     write_array(packet);                 /* Sent the packet by UART */
     log_packet(packet, true);            /* Log uart for debug purposes */
 }
