@@ -154,6 +154,7 @@ void SinclairACCNT::send_packet()
     std::vector<uint8_t> packet(protocol::SET_PACKET_LEN, 0);  /* Initialize packet contents */
     
     packet[protocol::SET_CONST_02_BYTE] = protocol::SET_CONST_02_VAL; /* Some always 0x02 byte... */
+    packet[protocol::SET_CONST_BIT_BYTE] = protocol::SET_CONST_BIT_MASK; /* Some always true bit */
 
     /* Prepare the rest of the frame */
     /* this handles tricky part of 0xAF value and flag marking that WiFi does not apply any changes */

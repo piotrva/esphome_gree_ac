@@ -131,6 +131,9 @@ namespace protocol {
 
     static const uint8_t SET_NOCHANGE_BYTE     = 11;
     static const uint8_t SET_NOCHANGE_MASK     = 0b00001000;
+
+    static const uint8_t SET_CONST_BIT_BYTE    = 7;
+    static const uint8_t SET_CONST_BIT_MASK    = 0b00000010;
 }
 
 /* Define packets from AC that would be processed by software */
