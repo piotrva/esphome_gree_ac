@@ -402,33 +402,64 @@ void SinclairACCNT::send_packet()
     packet[protocol::REPORT_HSWING_BYTE] |= (mode_horizontal_swing << protocol::REPORT_HSWING_POS);
 
     /* DISPLAY --------------------------------------------------------------------------- */
-    if (this->display_power_internal_)
-    {
-        packet[protocol::REPORT_DISP_ON_BYTE] |= protocol::REPORT_DISP_ON_MASK;
-    }
-
     uint8_t display_mode = protocol::REPORT_DISP_MODE_AUTO;
-    if (this->display_mode_internal_ == display_options::AUTO)
+    if (this->display_mode_ == display_options::AUTO)
     {
         display_mode = protocol::REPORT_DISP_MODE_AUTO;
+        this->display_power_internal_ = true;
     }
-    else if (this->display_mode_internal_ == display_options::SET)
+    else if (this->display_mode_ == display_options::SET)
     {
         display_mode = protocol::REPORT_DISP_MODE_SET;
+        this->display_power_internal_ = true;
     }
-    else if (this->display_mode_internal_ == display_options::ACT)
+    else if (this->display_mode_ == display_options::ACT)
     {
         display_mode = protocol::REPORT_DISP_MODE_ACT;
+        this->display_power_internal_ = true;
     }
-    else if (this->display_mode_internal_ == display_options::OUT)
+    else if (this->display_mode_ == display_options::OUT)
     {
         display_mode = protocol::REPORT_DISP_MODE_OUT;
+        this->display_power_internal_ = true;
+    }
+    else if (this->display_mode_ == display_options::OFF)
+    {
+        /* we do not want to alter display setting - only turn it off */
+        this->display_power_internal_ = false;
+        if (this->display_mode_internal_ == display_options::AUTO)
+        {
+            display_mode = protocol::REPORT_DISP_MODE_AUTO;
+        }
+        else if (this->display_mode_internal_ == display_options::SET)
+        {
+            display_mode = protocol::REPORT_DISP_MODE_SET;
+        }
+        else if (this->display_mode_internal_ == display_options::ACT)
+        {
+            display_mode = protocol::REPORT_DISP_MODE_ACT;
+        }
+        else if (this->display_mode_internal_ == display_options::OUT)
+        {
+            display_mode = protocol::REPORT_DISP_MODE_OUT;
+        }
+        else
+        {
+            display_mode = protocol::REPORT_DISP_MODE_AUTO;
+        }
     }
     else
     {
         display_mode = protocol::REPORT_DISP_MODE_AUTO;
+        this->display_power_internal_ = true;
     }
+
     packet[protocol::REPORT_DISP_MODE_BYTE] |= (display_mode << protocol::REPORT_DISP_MODE_POS);
+
+    if (this->display_power_internal_)
+    {
+        packet[protocol::REPORT_DISP_ON_BYTE] |= protocol::REPORT_DISP_ON_MASK;
+    }
 
     /* DISPLAY UNIT --------------------------------------------------------------------------- */
     if (this->display_unit_state_ == display_unit_options::DEGF)
