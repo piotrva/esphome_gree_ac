@@ -48,21 +48,6 @@ void SinclairACCNT::loop()
         {
             handle_packet(); /* this will update state of components in HA as well as internal settings */
         }
-
-        switch(this->update_)
-        {
-            case ACUpdate::NoUpdate:
-                break;
-            case ACUpdate::UpdateStart:
-                this->update_ = ACUpdate::UpdateClear;
-                break;
-            case ACUpdate::UpdateClear:
-                this->update_ = ACUpdate::NoUpdate;
-                break;
-            default:
-                this->update_ = ACUpdate::NoUpdate;
-                break;
-        }
     }
 
     /* we will send a packet to the AC as a reponse to indicate changes */
@@ -497,6 +482,22 @@ void SinclairACCNT::send_packet()
     this->wait_response_ = true;
     write_array(packet);                 /* Sent the packet by UART */
     log_packet(packet, true);            /* Log uart for debug purposes */
+
+    /* update setting state-machine */
+    switch(this->update_)
+    {
+        case ACUpdate::NoUpdate:
+            break;
+        case ACUpdate::UpdateStart:
+            this->update_ = ACUpdate::UpdateClear;
+            break;
+        case ACUpdate::UpdateClear:
+            this->update_ = ACUpdate::NoUpdate;
+            break;
+        default:
+            this->update_ = ACUpdate::NoUpdate;
+            break;
+    }
 }
 
 /*
