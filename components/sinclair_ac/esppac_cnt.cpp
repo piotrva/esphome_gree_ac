@@ -774,7 +774,7 @@ std::string SinclairACCNT::determine_display()
             break;
     }
 
-    if (this->display_power_internal)
+    if (this->display_power_internal_)
     {
         return this->display_mode_internal_;
     }
