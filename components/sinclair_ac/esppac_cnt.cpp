@@ -198,7 +198,24 @@ void SinclairACCNT::send_packet()
         default:
         case climate::CLIMATE_MODE_OFF:
             /* In case of MODE_OFF we will not alter the last mode setting recieved from AC, see determine_mode() */
-            mode = this->mode_internal_;
+            switch (this->mode_internal_)
+            {
+                case climate::CLIMATE_MODE_AUTO:
+                    mode = protocol::REPORT_MODE_AUTO;
+                    break;
+                case climate::CLIMATE_MODE_COOL:
+                    mode = protocol::REPORT_MODE_COOL;
+                    break;
+                case climate::CLIMATE_MODE_DRY:
+                    mode = protocol::REPORT_MODE_DRY;
+                    break;
+                case climate::CLIMATE_MODE_FAN_ONLY:
+                    mode = protocol::REPORT_MODE_FAN;
+                    break;
+                case climate::CLIMATE_MODE_HEAT:
+                    mode = protocol::REPORT_MODE_HEAT;
+                    break;
+            }
             power = false;
             break;
     }
