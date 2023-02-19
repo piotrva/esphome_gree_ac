@@ -1,0 +1,66 @@
+# DO NOT COMPILE
+# THIS IS INCLUDE ONLY FILE
+esphome:
+  name: $deviceid
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+  baud_rate: 0 # disable LOG output on UART as UART is used for Sinclair AC unit
+  # level: VERBOSE
+
+# Example configuration entry
+status_led:
+    pin: 
+      number: GPIO10
+      inverted: true
+
+uart:
+  tx_pin: GPIO21
+  rx_pin: GPIO20
+  baud_rate: 4800
+  parity: EVEN
+
+time:
+  - platform: sntp
+
+external_components:
+  - source: github://piotrva/esphome_gree_ac
+    components: [sinclair_ac]
+    refresh: 0s
+
+climate:
+  - platform: sinclair_ac
+    name: ${devicename}
+    horizontal_swing_select:
+      name: ${devicename} Horizontal Swing Mode
+    vertical_swing_select:
+      name: ${devicename} Vertical Swing Mode
+    display_select:
+      name: ${devicename} Display Mode
+    display_unit_select:
+      name: ${devicename} Display Unit
+    plasma_switch:
+      name: ${devicename} Plasma
+    sleep_switch:
+      name: ${devicename} Sleep
+    xfan_switch:
+      name: ${devicename} X-fan
+    save_switch:
+      name: ${devicename} Save/8 Heat
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: ${devicename} Fallback Hotspot
+    password: !secret wifi_ap_passwd
+
+captive_portal:
+    

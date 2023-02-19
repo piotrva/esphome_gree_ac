@@ -1,0 +1,14 @@
+substitutions:
+  deviceid: ac-living-room
+  devicename: AC Living room
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "YOUR_KEY2_HERE"
+
+ota:
+  password: "YOUR_PASSWORD2_HERE"
+
+<<: !include ac-sinclair-main.yaml
+    
