@@ -557,7 +557,7 @@ void SinclairACCNT::handle_packet()
         this->serialProcess_.data.erase(this->serialProcess_.data.begin(), this->serialProcess_.data.begin() + 4); /* remove header */
         this->serialProcess_.data.pop_back();  /* remove checksum */
         /* now process the data */
-        this->processUnitReport()
+        this->processUnitReport();
         this->publish_state();
     }
     else 
