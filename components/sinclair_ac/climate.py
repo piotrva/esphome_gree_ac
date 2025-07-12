@@ -76,7 +76,7 @@ DISPLAY_UNIT_OPTIONS = [
     "F",
 ]
 
-switch_schema = switch.switch_schema(Switch).extend(cv.COMPONENT_SCHEMA).extend(
+switch_schema = switch.switch_schema(switch.Switch).extend(cv.COMPONENT_SCHEMA).extend(
     {cv.GenerateID(): cv.declare_id(SinclairACSwitch)}
 )
 select_schema = select.select_schema.extend(
