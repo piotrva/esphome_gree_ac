@@ -76,23 +76,23 @@ DISPLAY_UNIT_OPTIONS = [
     "F",
 ]
 
-SWITCH_SCHEMA = switch.SWITCH_SCHEMA.extend(cv.COMPONENT_SCHEMA).extend(
+switch_schema = switch.switch_schema(switch.Switch).extend(cv.COMPONENT_SCHEMA).extend(
     {cv.GenerateID(): cv.declare_id(SinclairACSwitch)}
 )
-SELECT_SCHEMA = select.SELECT_SCHEMA.extend(
+select_schema = select.select_schema(select.Select).extend(
     {cv.GenerateID(CONF_ID): cv.declare_id(SinclairACSelect)}
 )
 
-SCHEMA = climate.CLIMATE_SCHEMA.extend(
+SCHEMA = climate.climate_schema(climate.Climate).extend(
     {
-        cv.Optional(CONF_HORIZONTAL_SWING_SELECT): SELECT_SCHEMA,
-        cv.Optional(CONF_VERTICAL_SWING_SELECT): SELECT_SCHEMA,
-        cv.Optional(CONF_DISPLAY_SELECT): SELECT_SCHEMA,
-        cv.Optional(CONF_DISPLAY_UNIT_SELECT): SELECT_SCHEMA,
-        cv.Optional(CONF_PLASMA_SWITCH): SWITCH_SCHEMA,
-        cv.Optional(CONF_SLEEP_SWITCH): SWITCH_SCHEMA,
-        cv.Optional(CONF_XFAN_SWITCH): SWITCH_SCHEMA,
-        cv.Optional(CONF_SAVE_SWITCH): SWITCH_SCHEMA,
+        cv.Optional(CONF_HORIZONTAL_SWING_SELECT): select_schema,
+        cv.Optional(CONF_VERTICAL_SWING_SELECT): select_schema,
+        cv.Optional(CONF_DISPLAY_SELECT): select_schema,
+        cv.Optional(CONF_DISPLAY_UNIT_SELECT): select_schema,
+        cv.Optional(CONF_PLASMA_SWITCH): switch_schema,
+        cv.Optional(CONF_SLEEP_SWITCH): switch_schema,
+        cv.Optional(CONF_XFAN_SWITCH): switch_schema,
+        cv.Optional(CONF_SAVE_SWITCH): switch_schema,
     }
 ).extend(uart.UART_DEVICE_SCHEMA)
 
