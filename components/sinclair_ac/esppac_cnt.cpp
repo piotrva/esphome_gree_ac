@@ -236,7 +236,7 @@ void SinclairACCNT::send_packet()
     bool    fanTurbo  = false;
     if (this->has_custom_fan_mode())
     {
-        const char* custom_fan_mode = this->get_custom_fan_mode();
+        const char* custom_fan_mode = this->get_custom_fan_mode().c_str();
 
         if (strcmp(custom_fan_mode, fan_modes::FAN_AUTO) == 0)
         {
@@ -616,7 +616,7 @@ bool SinclairACCNT::processUnitReport()
     const char* newFanMode = determine_fan_mode();
     if (this->has_custom_fan_mode())
     {
-        if (strcmp(this->get_custom_fan_mode(), newFanMode) != 0) hasChanged = true;
+        if (strcmp(this->get_custom_fan_mode().c_str(), newFanMode) != 0) hasChanged = true;
     }
     else
     {

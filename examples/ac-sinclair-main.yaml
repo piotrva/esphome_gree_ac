@@ -51,7 +51,7 @@ climate:
     xfan_switch:
       name: ${devicename} X-fan
     save_switch:
-      name: ${devicename} Save/8 Heat
+      name: ${devicename} Save|8 Heat
 
 wifi:
   ssid: !secret wifi_ssid
