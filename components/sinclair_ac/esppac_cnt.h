@@ -135,7 +135,13 @@ namespace protocol {
     static const uint8_t SET_CONST_BIT_BYTE    = 7;
     static const uint8_t SET_CONST_BIT_MASK    = 0b00000010;
 
+    static const uint8_t MODE_POWER_MASK = REPORT_MODE_MASK | REPORT_PWR_MASK;
+    static const uint8_t FRAME_HEADER_LEN = 4;
+    static const uint8_t MAX_COMMAND_ATTEMPTS = 3;
+
     /* time constraints */
+    static const uint32_t TIME_RESPONSE_TIMEOUT_MS = 700;
+    static const uint32_t TIME_CONFIRMATION_TIMEOUT_MS = 900;
     static const unsigned long TIME_REFRESH_PERIOD_MS   =  300;
     static const unsigned long TIME_TIMEOUT_INACTIVE_MS = 1000;
 }
@@ -174,6 +180,12 @@ class SinclairACCNT : public SinclairAC {
         bool processUnitReport();
 
         void send_packet();
+        bool check_mode_{false};
+        bool check_temp_{false};
+        bool awaiting_report_{false};
+        uint8_t expected_mode_{0};
+        uint8_t expected_temp_{0};
+        uint8_t attempts_{0};
 
         bool verify_packet();
         void handle_packet();
