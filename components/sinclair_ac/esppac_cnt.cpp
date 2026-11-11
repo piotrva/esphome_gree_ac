@@ -213,6 +213,9 @@ void SinclairACCNT::send_packet()
                 case climate::CLIMATE_MODE_HEAT:
                     mode = protocol::REPORT_MODE_HEAT;
                     break;
+                default:
+                    /* OFF / HEAT_COOL are never stored in mode_internal_ by a valid report - keep AUTO */
+                    break;
             }
             power = false;
             break;

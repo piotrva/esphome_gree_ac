@@ -1,0 +1,15 @@
+substitutions:
+  deviceid: ac-bedroom
+  devicename: AC Bedroom
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "jLPsSU5Key0Ez8KsGJ4f/zvZcltFVqvVrJRKmwYcyh0="
+
+ota:
+  platform: esphome
+  password: "9dba6885b9d9c2e97f4aec33bed76dad"
+
+<<: !include ac-sinclair-main.yaml
+    
