@@ -93,6 +93,14 @@ typedef struct {
 
 class SinclairAC : public Component, public uart::UARTDevice, public climate::Climate {
     public:
+        SinclairAC()
+        {
+            /* custom fan modes are stored on the Climate entity (ESPHome 2026.5.0+) and applied to traits by get_traits() */
+            this->set_supported_custom_fan_modes({fan_modes::FAN_AUTO, fan_modes::FAN_QUIET, fan_modes::FAN_LOW,
+                                                  fan_modes::FAN_MEDL, fan_modes::FAN_MED, fan_modes::FAN_MEDH,
+                                                  fan_modes::FAN_HIGH, fan_modes::FAN_TURBO});
+        }
+
         void set_vertical_swing_select(select::Select *vertical_swing_select);
         void set_horizontal_swing_select(select::Select *horizontal_swing_select);
 
